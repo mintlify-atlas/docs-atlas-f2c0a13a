@@ -1,0 +1,410 @@
+---
+title: LSP plugins
+description: Language Server Protocol configuration with lspconfig, Mason, and lazydev
+---
+
+The LSP (Language Server Protocol) plugins provide intelligent code completion, diagnostics, go-to-definition, and more for multiple programming languages.
+
+## Overview
+
+The LSP setup consists of three main components:
+
+<CardGroup cols={3}>
+  <Card title="nvim-lspconfig" icon="gear">
+    Configures language servers and sets up LSP capabilities
+  </Card>
+  <Card title="Mason" icon="box">
+    Installs and manages language servers, formatters, and linters
+  </Card>
+  <Card title="lazydev.nvim" icon="code">
+    Enhanced Lua development for Neovim configuration
+  </Card>
+</CardGroup>
+
+## nvim-lspconfig
+
+Provides the foundation for LSP integration by configuring language servers with proper capabilities.
+
+### Configuration
+
+```lua lua/leyland/plugins/lsp/lsp.lua
+return {
+  "hrsh7th/cmp-nvim-lsp",
+  event = { "BufReadPre", "BufNewFile" },
+  dependencies = {
+    { "antosha417/nvim-lsp-file-operations", config = true },
+    { "folke/lazydev.nvim", opts = {} },
+  },
+  config = function()
+    local cmp_nvim_lsp = require("cmp_nvim_lsp")
+    local capabilities = cmp_nvim_lsp.default_capabilities()
+
+    vim.lsp.config("*", {
+      capabilities = capabilities,
+    })
+  end,
+}
+```
+
+### Capabilities
+
+The config enables autocompletion for all LSP servers:
+
+```lua
+-- Get default capabilities from nvim-cmp
+local capabilities = cmp_nvim_lsp.default_capabilities()
+
+-- Apply to all language servers
+vim.lsp.config("*", {
+  capabilities = capabilities,
+})
+```
+
+<Info>
+Capabilities tell language servers what features the editor supports, like snippet expansion, completion item documentation, and resolve support.
+</Info>
+
+### File operations
+
+The `nvim-lsp-file-operations` plugin enables file operations through the LSP:
+
+```lua
+{ "antosha417/nvim-lsp-file-operations", config = true }
+```
+
+This allows language servers to:
+- Update imports when files are moved
+- Rename references when files are renamed
+- Clean up references when files are deleted
+
+### lazydev.nvim
+
+Provides enhanced Lua development specifically for Neovim:
+
+```lua
+{ "folke/lazydev.nvim", opts = {} }
+```
+
+<Accordion title="What lazydev provides">
+  - **Neovim API completion** - Full autocomplete for `vim.*` APIs
+  - **Plugin development** - Proper types for plugin development
+  - **Runtime path awareness** - Understands Neovim's runtime structure
+  - **No LSP restart needed** - Works immediately without restarting lua_ls
+</Accordion>
+
+## Mason (LSP installer)
+
+Mason provides a UI for installing and managing language servers, formatters, and linters.
+
+### Configuration
+
+```lua lua/leyland/plugins/lsp/mason.lua
+return {
+  {
+    "williamboman/mason-lspconfig.nvim",
+    opts = {
+      ensure_installed = {
+        "ts_ls",
+        "html",
+        "cssls",
+        "tailwindcss",
+        "svelte",
+        "lua_ls",
+        "graphql",
+        "emmet_ls",
+        "prismals",
+        "pyright",
+        "eslint",
+      },
+    },
+    dependencies = {
+      {
+        "williamboman/mason.nvim",
+        opts = {
+          ui = {
+            icons = {
+              package_installed = "✓",
+              package_pending = "➜",
+              package_uninstalled = "✗",
+            },
+          },
+        },
+      },
+      "neovim/nvim-lspconfig",
+    },
+  },
+}
+```
+
+### Installed language servers
+
+The following language servers are automatically installed:
+
+<Tabs>
+  <Tab title="JavaScript/TypeScript">
+    - **ts_ls** - TypeScript language server
+    - **eslint** - JavaScript/TypeScript linting
+    - **emmet_ls** - Emmet completion for HTML/CSS
+  </Tab>
+  <Tab title="Web development">
+    - **html** - HTML language server
+    - **cssls** - CSS language server
+    - **tailwindcss** - Tailwind CSS IntelliSense
+    - **svelte** - Svelte language server
+    - **graphql** - GraphQL language server
+  </Tab>
+  <Tab title="Database & backend">
+    - **prismals** - Prisma schema language server
+    - **pyright** - Python type checking and IntelliSense
+  </Tab>
+  <Tab title="Configuration">
+    - **lua_ls** - Lua language server (enhanced by lazydev)
+  </Tab>
+</Tabs>
+
+### Mason UI
+
+Open Mason with:
+
+```vim
+:Mason
+```
+
+Inside the Mason UI:
+
+- Press `i` to install a package
+- Press `u` to update a package
+- Press `X` to uninstall a package
+- Press `g?` to see all keymaps
+
+<CodeGroup>
+```vim Install server
+:Mason
+# Search for server
+# Press 'i' on highlighted package
+```
+
+```vim Update all
+:Mason
+# Press 'U' to update all packages
+```
+</CodeGroup>
+
+### mason-tool-installer
+
+Automatically installs formatters and linters:
+
+```lua
+{
+  "WhoIsSethDaniel/mason-tool-installer.nvim",
+  opts = {
+    ensure_installed = {
+      "prettier",   -- prettier formatter
+      "stylua",     -- lua formatter
+      "isort",      -- python formatter
+      "black",      -- python formatter
+      "pylint",     -- python linter
+      "eslint_d",   -- fast eslint daemon
+    },
+  },
+  dependencies = {
+    "williamboman/mason.nvim",
+  },
+}
+```
+
+<Info>
+These tools are used by conform.nvim for formatting. See the [Editor plugins](/plugins/editor) page for formatting configuration.
+</Info>
+
+## LSP features
+
+Once language servers are installed, you get:
+
+### Code intelligence
+
+<CardGroup cols={2}>
+  <Card title="Autocompletion" icon="wand-magic-sparkles">
+    Context-aware completions from LSP servers
+  </Card>
+  <Card title="Diagnostics" icon="circle-exclamation">
+    Real-time error and warning detection
+  </Card>
+  <Card title="Go to definition" icon="arrow-pointer">
+    Jump to symbol definitions
+  </Card>
+  <Card title="Hover documentation" icon="book">
+    View documentation on hover
+  </Card>
+  <Card title="Find references" icon="magnifying-glass">
+    Find all references to a symbol
+  </Card>
+  <Card title="Rename" icon="pen">
+    Rename symbols across files
+  </Card>
+  <Card title="Code actions" icon="lightbulb">
+    Quick fixes and refactorings
+  </Card>
+  <Card title="Formatting" icon="align-left">
+    Format code according to language standards
+  </Card>
+</CardGroup>
+
+### Common LSP keybindings
+
+These are standard LSP keybindings (configured elsewhere in your setup):
+
+<Tabs>
+  <Tab title="Navigation">
+    - **gd** - Go to definition
+    - **gD** - Go to declaration
+    - **gr** - Go to references
+    - **gi** - Go to implementation
+    - **gt** - Go to type definition
+  </Tab>
+  <Tab title="Information">
+    - **K** - Hover documentation
+    - **`<leader>d`** - Show diagnostics
+    - **]d** - Next diagnostic
+    - **[d** - Previous diagnostic
+  </Tab>
+  <Tab title="Actions">
+    - **`<leader>rn`** - Rename symbol
+    - **`<leader>ca`** - Code actions
+    - **`<leader>f`** - Format document
+  </Tab>
+</Tabs>
+
+<Note>
+Exact keybindings depend on your keymap configuration in `lua/leyland/core/keymaps.lua`.
+</Note>
+
+## Adding new language servers
+
+To add support for a new language:
+
+<Steps>
+  <Step title="Find the server">
+    Check [Mason's registry](https://mason-registry.dev/registry/list) or run `:Mason` and search.
+  </Step>
+  <Step title="Add to ensure_installed">
+    Edit `lua/leyland/plugins/lsp/mason.lua` and add the server name:
+
+    ```lua
+    ensure_installed = {
+      "ts_ls",
+      "lua_ls",
+      "your-new-server",  -- Add here
+    }
+    ```
+  </Step>
+  <Step title="Restart Neovim">
+    The server will be automatically installed on next startup.
+  </Step>
+  <Step title="Configure if needed">
+    Most servers work automatically. For custom config, add to `lua/leyland/plugins/lsp/lsp.lua`:
+
+    ```lua
+    vim.lsp.config("your-new-server", {
+      capabilities = capabilities,
+      settings = {
+        -- Server-specific settings
+      },
+    })
+    ```
+  </Step>
+</Steps>
+
+## Lua development with lazydev
+
+For Neovim Lua development, lazydev provides superior completion:
+
+<CodeGroup>
+```lua Before lazydev
+-- Generic Lua completion
+vim.|  -- No API hints
+```
+
+```lua After lazydev
+-- Full Neovim API completion
+vim.lsp.|  -- Shows: config, buf, util, etc.
+vim.api.nvim_|  -- Shows all nvim_ functions
+require("telescope")|  -- Plugin-specific types
+```
+</CodeGroup>
+
+<Tip>
+lazydev automatically detects Neovim configuration files and plugin directories, providing appropriate completions without manual configuration.
+</Tip>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="LSP not working">
+    Check if the server is installed:
+
+    ```vim
+    :Mason
+    # Look for checkmark (✓) next to server
+    ```
+
+    Check if LSP is attached:
+
+    ```vim
+    :LspInfo
+    # Shows active servers for current buffer
+    ```
+  </Accordion>
+
+  <Accordion title="Completions not showing">
+    Verify nvim-cmp is configured:
+
+    ```vim
+    :CmpStatus
+    # Should show nvim_lsp as a source
+    ```
+
+    Check LSP capabilities:
+
+    ```vim
+    :lua print(vim.inspect(vim.lsp.get_clients()[1].server_capabilities))
+    ```
+  </Accordion>
+
+  <Accordion title="Server keeps crashing">
+    Check server logs:
+
+    ```vim
+    :LspLog
+    # Opens log file with error messages
+    ```
+
+    Try reinstalling:
+
+    ```vim
+    :Mason
+    # Press X to uninstall, then i to reinstall
+    ```
+  </Accordion>
+
+  <Accordion title="Slow completions">
+    Some servers (like ts_ls in large projects) can be slow. Try:
+
+    - Increase debounce time in nvim-cmp config
+    - Use local tsserver: `npm install -g typescript-language-server`
+    - Consider alternative servers like Deno LSP
+  </Accordion>
+</AccordionGroup>
+
+## Performance
+
+LSP plugins are optimized for performance:
+
+- **Lazy loading** - Only load when opening files
+- **Async operations** - LSP requests don't block the UI
+- **Incremental updates** - Only changed regions are re-analyzed
+- **Debouncing** - Diagnostics update after you stop typing
+
+<Info>
+Language servers run in separate processes, so they won't slow down Neovim's UI even when analyzing large codebases.
+</Info>

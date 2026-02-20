@@ -1,0 +1,321 @@
+---
+title: Editor plugins
+description: Autocompletion, snippets, formatting, and syntax highlighting plugins
+---
+
+These plugins enhance your editing experience with intelligent autocompletion, syntax highlighting, code formatting, and automatic pairing.
+
+## nvim-cmp (completion engine)
+
+nvim-cmp is the completion engine that powers autocompletion from multiple sources including LSP, snippets, buffer text, and file paths.
+
+### Configuration
+
+```lua lua/leyland/plugins/nvim-cmp.lua
+return {
+  "hrsh7th/nvim-cmp",
+  event = "InsertEnter",
+  dependencies = {
+    "hrsh7th/cmp-buffer",      -- source for text in buffer
+    "hrsh7th/cmp-path",        -- source for file system paths
+    "L3MON4D3/LuaSnip",        -- snippet engine
+    "saadparwaiz1/cmp_luasnip", -- for autocompletion
+    "rafamadriz/friendly-snippets", -- useful snippets
+    "onsails/lspkind.nvim",    -- vs-code like pictograms
+  },
+}
+```
+
+### Completion sources
+
+The completion engine pulls suggestions from multiple sources in priority order:
+
+```lua
+sources = cmp.config.sources({
+  { name = "nvim_lsp" },  -- LSP completions (highest priority)
+  { name = "luasnip" },   -- Snippet completions
+  { name = "buffer" },    -- Text in current buffer
+  { name = "path" },      -- File system paths
+})
+```
+
+### Keybindings
+
+<ParamField path="Ctrl-k" type="normal/insert">
+  Select previous completion item
+</ParamField>
+
+<ParamField path="Ctrl-j" type="normal/insert">
+  Select next completion item
+</ParamField>
+
+<ParamField path="Ctrl-b" type="insert">
+  Scroll documentation up
+</ParamField>
+
+<ParamField path="Ctrl-f" type="insert">
+  Scroll documentation down
+</ParamField>
+
+<ParamField path="Ctrl-Space" type="insert">
+  Trigger completion manually
+</ParamField>
+
+<ParamField path="Ctrl-e" type="insert">
+  Close completion window
+</ParamField>
+
+<ParamField path="Enter" type="insert">
+  Confirm selected completion
+</ParamField>
+
+<ParamField path="Tab" type="insert">
+  Select next item or expand/jump snippet
+</ParamField>
+
+### Visual formatting
+
+Completion items display VS Code-style icons using lspkind:
+
+```lua
+formatting = {
+  format = lspkind.cmp_format({
+    maxwidth = 50,
+    ellipsis_char = "...",
+  }),
+}
+```
+
+## LuaSnip (snippet engine)
+
+LuaSnip provides snippet expansion and navigation, integrated with nvim-cmp for seamless completion.
+
+### Features
+
+- **Friendly snippets** - Pre-built snippets for many languages
+- **Jump navigation** - Tab through snippet placeholders
+- **VSCode compatibility** - Loads VSCode-style snippets
+
+### Configuration
+
+```lua
+local luasnip = require("luasnip")
+
+-- Load VSCode-style snippets from plugins
+require("luasnip.loaders.from_vscode").lazy_load()
+
+-- Configure snippet expansion
+snippet = {
+  expand = function(args)
+    luasnip.lsp_expand(args.body)
+  end,
+}
+```
+
+### Usage
+
+1. Start typing to trigger completion
+2. Select a snippet from the completion menu
+3. Press Tab to expand and jump to the next placeholder
+4. Continue editing or press Tab again to jump forward
+
+<Tip>
+Snippets are context-aware and only show when appropriate for the current file type.
+</Tip>
+
+## Treesitter (syntax highlighting)
+
+Treesitter provides superior syntax highlighting, code understanding, and text objects through incremental parsing.
+
+### Supported languages
+
+The following languages are automatically installed:
+
+```lua lua/leyland/plugins/treesitter.lua
+ensure_installed = {
+  "json",
+  "javascript",
+  "typescript",
+  "tsx",
+  "yaml",
+  "html",
+  "css",
+  "prisma",
+  "markdown",
+  "markdown_inline",
+  "svelte",
+  "graphql",
+  "bash",
+  "lua",
+  "vim",
+  "dockerfile",
+  "gitignore",
+  "query",
+  "vimdoc",
+  "c",
+}
+```
+
+### Special configuration
+
+Bash syntax is used for Zsh files:
+
+```lua
+vim.treesitter.language.register("bash", "zsh")
+```
+
+### Benefits
+
+<CardGroup cols={2}>
+  <Card title="Accurate highlighting" icon="paintbrush">
+    Context-aware syntax highlighting that understands code structure
+  </Card>
+  <Card title="Code folding" icon="compress">
+    Fold functions, classes, and blocks intelligently
+  </Card>
+  <Card title="Text objects" icon="object-group">
+    Select and operate on functions, classes, and parameters
+  </Card>
+  <Card title="Incremental parsing" icon="bolt">
+    Fast updates as you type
+  </Card>
+</CardGroup>
+
+## conform.nvim (formatting)
+
+conform.nvim handles code formatting with support for multiple formatters per filetype.
+
+### Configured formatters
+
+<Tabs>
+  <Tab title="JavaScript/TypeScript">
+    ```lua
+    javascript = { "prettier" },
+    typescript = { "prettier" },
+    javascriptreact = { "prettier" },
+    typescriptreact = { "prettier" },
+    ```
+  </Tab>
+  <Tab title="Web">
+    ```lua
+    html = { "prettier" },
+    css = { "prettier" },
+    svelte = { "prettier" },
+    graphql = { "prettier" },
+    ```
+  </Tab>
+  <Tab title="Data formats">
+    ```lua
+    json = { "prettier" },
+    yaml = { "prettier" },
+    markdown = { "prettier" },
+    ```
+  </Tab>
+  <Tab title="Lua">
+    ```lua
+    lua = { "stylua" },
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```lua
+    python = { "isort", "black" },
+    ```
+  </Tab>
+</Tabs>
+
+### Format on save
+
+Files are automatically formatted when you save:
+
+```lua lua/leyland/plugins/formatting.lua
+format_on_save = {
+  lsp_fallback = true,
+  async = false,
+  timeout_ms = 3000,
+}
+```
+
+<Info>
+If no formatter is configured, formatting falls back to LSP formatting if available.
+</Info>
+
+### Manual formatting
+
+<ParamField path="<leader>mp" type="normal/visual">
+  Format current file or selected range
+</ParamField>
+
+The manual format command is useful when you want to format without saving:
+
+```lua
+vim.keymap.set({ "n", "v" }, "<leader>mp", function()
+  conform.format({
+    lsp_fallback = true,
+    async = false,
+    timeout_ms = 1000,
+  })
+end, { desc = "Format file or range (in visual mode)" })
+```
+
+## nvim-autopairs
+
+Automatically insert closing brackets, quotes, and other paired characters.
+
+### Features
+
+- **Treesitter integration** - Context-aware pairing based on syntax
+- **Language-specific rules** - Custom behavior per language
+- **Completion integration** - Works seamlessly with nvim-cmp
+
+### Configuration
+
+```lua lua/leyland/plugins/autopairs.lua
+autopairs.setup({
+  check_ts = true, -- enable treesitter
+  ts_config = {
+    lua = { "string" },              -- don't add pairs in lua strings
+    javascript = { "template_string" }, -- don't add pairs in JS template strings
+    java = false,                    -- don't check treesitter on java
+  },
+})
+```
+
+### Completion integration
+
+Autopairs automatically triggers when confirming completions:
+
+```lua
+local cmp_autopairs = require("nvim-autopairs.completion.cmp")
+local cmp = require("cmp")
+
+cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+```
+
+<Tip>
+Autopairs respects Treesitter context, so it won't add pairs inside strings or comments where they're not wanted.
+</Tip>
+
+## Workflow example
+
+Here's how these plugins work together:
+
+1. **Start typing** - nvim-cmp shows completions from LSP, snippets, and buffer
+2. **Select completion** - Use Ctrl-j/k to navigate, Enter to confirm
+3. **Expand snippet** - Tab through placeholders if it's a snippet
+4. **Auto-pairing** - Brackets and quotes close automatically
+5. **Syntax highlighting** - Treesitter colorizes code in real-time
+6. **Format on save** - conform.nvim formats your code automatically
+
+<CodeGroup>
+```typescript Before
+function greet({
+// Start typing, completion triggers
+```
+
+```typescript After completion
+function greet(name: string) {
+  console.log(`Hello, ${name}`);
+}
+// Formatted, highlighted, and auto-paired!
+```
+</CodeGroup>

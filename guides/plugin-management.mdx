@@ -1,0 +1,634 @@
+---
+title: Plugin management
+description: Master plugin management in nvim-luffy using Lazy.nvim
+---
+
+## Understanding Lazy.nvim
+
+Nvim-luffy uses [Lazy.nvim](https://github.com/folke/lazy.nvim) as its plugin manager. Lazy.nvim is a modern plugin manager that focuses on performance through lazy loading and provides a great user experience.
+
+### How Lazy.nvim is configured
+
+The Lazy.nvim setup is in `lua/leyland/lazy.lua`:
+
+```lua lua/leyland/lazy.lua
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+require("lazy").setup({
+  { import = "leyland.plugins" },
+  { import = "leyland.plugins.lsp" },
+}, {
+  checker = {
+    enabled = true,
+    notify = false,  -- Don't notify when updates are available
+  },
+  change_detection = {
+    notify = false,  -- Don't notify when config changes
+  },
+})
+```
+
+<Note>
+  Lazy.nvim automatically installs itself on first run and imports all plugins from the `lua/leyland/plugins/` and `lua/leyland/plugins/lsp/` directories.
+</Note>
+
+## Adding a new plugin
+
+Adding a plugin in nvim-luffy is straightforward. You can either add it to an existing file or create a new one.
+
+<Steps>
+  <Step title="Choose where to add the plugin">
+    **For simple plugins without configuration:**
+    - Add to `lua/leyland/plugins/init.lua`
+
+    **For plugins with configuration:**
+    - Create a new file: `lua/leyland/plugins/plugin-name.lua`
+
+    **For LSP-related plugins:**
+    - Create a new file: `lua/leyland/plugins/lsp/plugin-name.lua`
+  </Step>
+
+  <Step title="Define the plugin specification">
+    Create or edit the file with a Lazy.nvim plugin spec:
+
+    <CodeGroup>
+    ```lua Simple plugin (no config)
+    return {
+      "tpope/vim-sleuth",  -- Auto-detect indentation
+    }
+    ```
+
+    ```lua Plugin with configuration
+    return {
+      "folke/which-key.nvim",
+      event = "VeryLazy",
+      config = function()
+        require("which-key").setup({
+          -- Your configuration here
+        })
+      end,
+    }
+    ```
+
+    ```lua Plugin with lazy loading
+    return {
+      "kylechui/nvim-surround",
+      event = { "BufReadPre", "BufNewFile" },
+      config = function()
+        require("nvim-surround").setup()
+      end,
+    }
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Restart Neovim">
+    When you restart Neovim, Lazy.nvim will automatically:
+    - Detect the new plugin
+    - Download and install it
+    - Load it according to your configuration
+  </Step>
+
+  <Step title="Verify installation">
+    Open the Lazy.nvim UI to confirm the plugin was installed:
+    ```
+    :Lazy
+    ```
+  </Step>
+</Steps>
+
+### Real examples from nvim-luffy
+
+<Tabs>
+  <Tab title="Simple plugins">
+    From lua/leyland/plugins/init.lua:
+
+    ```lua
+    return {
+      "nvim-lua/plenary.nvim",           -- Lua utility functions
+      "christoomey/vim-tmux-navigator",  -- Tmux integration
+    }
+    ```
+
+    These plugins don't need configuration, so they're listed together in one file.
+  </Tab>
+
+  <Tab title="UI plugin">
+    From lua/leyland/plugins/nvim-tree.lua:
+
+    ```lua
+    return {
+      "nvim-tree/nvim-tree.lua",
+      dependencies = "nvim-tree/nvim-web-devicons",
+      keys = {
+        { "<leader>e", "<cmd>NvimTreeFindFileToggle<cr>", desc = "Toggle file explorer" },
+      },
+      config = function()
+        local nvimtree = require("nvim-tree")
+        nvimtree.setup({
+          view = {
+            width = 50,
+            side = "right",
+          },
+        })
+      end,
+    }
+    ```
+
+    This plugin:
+    - Declares a dependency on nvim-web-devicons
+    - Only loads when you press `<leader>e` (lazy loading)
+    - Has custom configuration
+  </Tab>
+
+  <Tab title="Multiple colorschemes">
+    From lua/leyland/plugins/colorscheme.lua:
+
+    ```lua
+    return {
+      {
+        "catppuccin/nvim",
+        name = "catppuccin",
+        priority = 1000,
+      },
+      {
+        "folke/tokyonight.nvim",
+        priority = 1000,
+      },
+      {
+        "rose-pine/neovim",
+        name = "rose-pine",
+        priority = 1000,
+        config = function()
+          vim.cmd.colorscheme("bamboo")
+        end,
+      },
+    }
+    ```
+
+    You can return multiple plugin specs from a single file. The `priority` field ensures colorschemes load before other plugins.
+  </Tab>
+</Tabs>
+
+## Removing a plugin
+
+Removing a plugin is just as easy as adding one.
+
+<Steps>
+  <Step title="Remove the plugin specification">
+    Either delete the entire file:
+    ```bash
+    rm ~/.config/nvim/lua/leyland/plugins/unwanted-plugin.lua
+    ```
+
+    Or if the plugin is in a file with other plugins, remove just its spec:
+    ```lua lua/leyland/plugins/init.lua
+    return {
+      "nvim-lua/plenary.nvim",
+      -- "plugin/to-remove",  -- Comment out or delete this line
+    }
+    ```
+  </Step>
+
+  <Step title="Clean up plugin files">
+    Restart Neovim and run:
+    ```
+    :Lazy clean
+    ```
+
+    This removes the plugin files from disk.
+  </Step>
+
+  <Step title="Remove related configuration (optional)">
+    If the plugin had keybindings or settings elsewhere in your config, remove those as well.
+  </Step>
+</Steps>
+
+<Warning>
+  Some plugins are dependencies of other plugins. Lazy.nvim will warn you if you try to remove a plugin that's required by another.
+</Warning>
+
+## Updating plugins
+
+Lazy.nvim makes it easy to keep your plugins up to date.
+
+<Tabs>
+  <Tab title="Update all plugins">
+    Open the Lazy.nvim UI and update everything:
+    ```
+    :Lazy update
+    ```
+
+    Or use the sync command to install, clean, and update:
+    ```
+    :Lazy sync
+    ```
+  </Tab>
+
+  <Tab title="Update specific plugin">
+    In the Lazy.nvim UI:
+    1. Open with `:Lazy`
+    2. Navigate to the plugin
+    3. Press `u` to update just that plugin
+  </Tab>
+
+  <Tab title="Check for updates">
+    Nvim-luffy has automatic update checking enabled:
+
+    ```lua lua/leyland/lazy.lua
+    checker = {
+      enabled = true,
+      notify = false,  -- Silent checking
+    }
+    ```
+
+    To manually check for updates:
+    ```
+    :Lazy check
+    ```
+  </Tab>
+
+  <Tab title="Restore plugin">
+    If an update breaks something, you can restore to a previous version:
+    ```
+    :Lazy restore
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Lazy.nvim creates a lockfile at `~/.config/nvim/lazy-lock.json` to track exact plugin versions. Commit this file to version control for reproducible setups.
+</Note>
+
+## Lazy loading strategies
+
+Lazy loading improves startup time by deferring plugin loading until needed. Here are the strategies used in nvim-luffy:
+
+### By event
+
+Load plugins when specific Vim events occur:
+
+```lua lua/leyland/plugins/treesitter.lua
+return {
+  "nvim-treesitter/nvim-treesitter",
+  event = { "BufReadPre", "BufNewFile" },  -- Load before opening a file
+  -- ...
+}
+```
+
+```lua lua/leyland/plugins/nvim-cmp.lua
+return {
+  "hrsh7th/nvim-cmp",
+  event = "InsertEnter",  -- Load when entering insert mode
+  -- ...
+}
+```
+
+<Accordion title="Common events for lazy loading">
+  - `BufReadPre` - Before reading a buffer
+  - `BufNewFile` - When creating a new file
+  - `InsertEnter` - Entering insert mode
+  - `VeryLazy` - After UI is loaded (good for non-essential plugins)
+  - `CmdlineEnter` - When using command line
+  - `LspAttach` - When LSP attaches to a buffer
+</Accordion>
+
+### By command
+
+Load plugins only when specific commands are run:
+
+```lua lua/leyland/plugins/neogit.lua
+return {
+  "NeogitOrg/neogit",
+  lazy = true,
+  cmd = "Neogit",  -- Load when :Neogit command is run
+  -- ...
+}
+```
+
+### By keybinding
+
+Load plugins when specific keybindings are pressed:
+
+```lua lua/leyland/plugins/nvim-tree.lua
+return {
+  "nvim-tree/nvim-tree.lua",
+  keys = {
+    { "<leader>e", "<cmd>NvimTreeFindFileToggle<cr>", desc = "Toggle file explorer" },
+  },
+  -- ...
+}
+```
+
+```lua lua/leyland/plugins/harpoon.lua
+return {
+  "ThePrimeagen/harpoon",
+  keys = function()
+    local keys = {
+      {
+        "<leader>H",
+        function()
+          require("harpoon"):list():add()
+        end,
+        desc = "Harpoon File",
+      },
+      {
+        "<leader>h",
+        function()
+          local harpoon = require("harpoon")
+          harpoon.ui:toggle_quick_menu(harpoon:list())
+        end,
+        desc = "Harpoon Quick Menu",
+      },
+    }
+
+    for i = 1, 9 do
+      table.insert(keys, {
+        "<leader>" .. i,
+        function()
+          require("harpoon"):list():select(i)
+        end,
+        desc = "Harpoon to File " .. i,
+      })
+    end
+    return keys
+  end,
+}
+```
+
+### By filetype
+
+Load plugins only for specific file types:
+
+```lua
+return {
+  "iamcco/markdown-preview.nvim",
+  ft = "markdown",  -- Load only for markdown files
+  build = "cd app && npm install",
+}
+```
+
+### By dependency
+
+Some plugins load automatically because they're dependencies:
+
+```lua lua/leyland/plugins/telescope.lua
+return {
+  "nvim-telescope/telescope.nvim",
+  dependencies = {
+    "nvim-lua/plenary.nvim",  -- Loaded automatically with Telescope
+    { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+  },
+  -- ...
+}
+```
+
+## Plugin configuration patterns
+
+### Pattern 1: Simple setup
+
+Most plugins just need `setup()` called:
+
+```lua
+return {
+  "windwp/nvim-autopairs",
+  event = "InsertEnter",
+  config = function()
+    require("nvim-autopairs").setup()
+  end,
+}
+```
+
+### Pattern 2: Setup with options
+
+Pass configuration options to setup:
+
+```lua lua/leyland/plugins/lsp/mason.lua
+return {
+  "williamboman/mason.nvim",
+  opts = {
+    ui = {
+      icons = {
+        package_installed = "✓",
+        package_pending = "➜",
+        package_uninstalled = "✗",
+      },
+    },
+  },
+}
+```
+
+<Note>
+  Using `opts` is shorthand for `config = function() require("plugin").setup(opts) end`
+</Note>
+
+### Pattern 3: Full configuration function
+
+For complex setups, use a full config function:
+
+```lua lua/leyland/plugins/nvim-cmp.lua
+return {
+  "hrsh7th/nvim-cmp",
+  event = "InsertEnter",
+  dependencies = {
+    "hrsh7th/cmp-buffer",
+    "hrsh7th/cmp-path",
+    "L3MON4D3/LuaSnip",
+  },
+  config = function()
+    local cmp = require("cmp")
+    local luasnip = require("luasnip")
+
+    -- Load snippets
+    require("luasnip.loaders.from_vscode").lazy_load()
+
+    cmp.setup({
+      snippet = {
+        expand = function(args)
+          luasnip.lsp_expand(args.body)
+        end,
+      },
+      mapping = cmp.mapping.preset.insert({
+        ["<C-k>"] = cmp.mapping.select_prev_item(),
+        ["<C-j>"] = cmp.mapping.select_next_item(),
+        ["<CR>"] = cmp.mapping.confirm({ select = false }),
+      }),
+      sources = cmp.config.sources({
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
+        { name = "buffer" },
+        { name = "path" },
+      }),
+    })
+  end,
+}
+```
+
+### Pattern 4: Keybindings in config
+
+Set up keybindings inside the config function:
+
+```lua lua/leyland/plugins/telescope.lua
+config = function()
+  local telescope = require("telescope")
+  telescope.setup({ ... })
+
+  -- Set keymaps after setup
+  local keymap = vim.keymap
+  keymap.set("n", "<leader><leader>", "<cmd>Telescope find_files<cr>", { desc = "Fuzzy find files" })
+  keymap.set("n", "<leader>/", "<cmd>Telescope live_grep<cr>", { desc = "Find string in cwd" })
+end,
+```
+
+### Pattern 5: Build steps
+
+Some plugins need to be built after installation:
+
+```lua
+return {
+  "nvim-telescope/telescope-fzf-native.nvim",
+  build = "make",  -- Run 'make' after install/update
+}
+```
+
+```lua
+return {
+  "L3MON4D3/LuaSnip",
+  build = "make install_jsregexp",  -- Build jsregexp support
+}
+```
+
+## Managing LSP-related plugins
+
+LSP plugins in nvim-luffy are organized in `lua/leyland/plugins/lsp/`:
+
+### Mason configuration
+
+From lua/leyland/plugins/lsp/mason.lua:
+
+```lua
+return {
+  {
+    "williamboman/mason-lspconfig.nvim",
+    opts = {
+      ensure_installed = {
+        "ts_ls",      -- TypeScript
+        "html",       -- HTML
+        "cssls",      -- CSS
+        "tailwindcss",
+        "lua_ls",     -- Lua
+        "pyright",    -- Python
+      },
+    },
+  },
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      ensure_installed = {
+        "prettier",   -- Formatter
+        "stylua",     -- Lua formatter
+        "black",      -- Python formatter
+        "eslint_d",   -- Linter
+      },
+    },
+  },
+}
+```
+
+To add a new language server:
+
+<Steps>
+  <Step title="Find the LSP server name">
+    Search for your language at [nvim-lspconfig server configurations](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md)
+  </Step>
+
+  <Step title="Add to ensure_installed">
+    Add the server name to the `ensure_installed` table in lua/leyland/plugins/lsp/mason.lua:
+
+    ```lua
+    ensure_installed = {
+      "ts_ls",
+      "rust_analyzer",  -- Add Rust
+      "gopls",          -- Add Go
+      -- ...
+    }
+    ```
+  </Step>
+
+  <Step title="Restart and install">
+    Restart Neovim. Mason will automatically install the new language server.
+  </Step>
+</Steps>
+
+## Useful Lazy.nvim commands
+
+Here are the most useful commands for managing plugins:
+
+| Command | Description |
+|---------|-------------|
+| `:Lazy` | Open the Lazy.nvim UI |
+| `:Lazy install` | Install missing plugins |
+| `:Lazy update` | Update all plugins |
+| `:Lazy sync` | Install, clean, and update |
+| `:Lazy clean` | Remove unused plugins |
+| `:Lazy check` | Check for updates |
+| `:Lazy restore` | Restore plugins to lockfile state |
+| `:Lazy profile` | Show plugin load times |
+| `:Lazy log` | Show recent changes |
+| `:Lazy help` | Open help for Lazy.nvim |
+
+<Note>
+  Inside the Lazy.nvim UI, press `?` to see all available keybindings.
+</Note>
+
+## Troubleshooting
+
+<Accordion title="Plugin not loading">
+  1. Check that the plugin file returns a valid spec
+  2. Open `:Lazy` and look for error messages
+  3. Try `:Lazy reload` to reload the plugin
+  4. Check if lazy loading conditions are met (event, cmd, keys)
+</Accordion>
+
+<Accordion title="Slow startup time">
+  1. Run `:Lazy profile` to see load times
+  2. Look for plugins loading synchronously that could be lazy-loaded
+  3. Consider using `event = "VeryLazy"` for non-essential plugins
+  4. Check if build steps are running on every startup
+</Accordion>
+
+<Accordion title="Plugin updates breaking config">
+  1. Use `:Lazy restore` to revert to the lockfile
+  2. Check the plugin's changelog for breaking changes
+  3. Update your config to match the new API
+  4. Consider pinning the plugin to a specific version:
+     ```lua
+     return {
+       "author/plugin",
+       version = "v1.2.3",
+     }
+     ```
+</Accordion>
+
+<Accordion title="Dependency conflicts">
+  1. Check `:Lazy` for dependency tree
+  2. Ensure plugins requiring the same dependency specify compatible versions
+  3. Try `:Lazy clean` and `:Lazy install` to reinstall
+</Accordion>
+
+## Next steps
+
+- Explore all [keybindings](/guides/keybindings) available in nvim-luffy
+- Learn more about [customization](/guides/customization)
+- Check out [LSP configuration](/plugins/lsp) for language support

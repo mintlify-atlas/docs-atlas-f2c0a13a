@@ -1,0 +1,206 @@
+---
+title: Keymaps
+description: Custom key bindings and shortcuts for efficient navigation and window management
+---
+
+The `keymaps.lua` file defines custom key bindings for window management and buffer operations. These keymaps enhance your workflow by providing intuitive shortcuts for common tasks.
+
+## Source location
+
+`lua/leyland/core/keymaps.lua`
+
+## Leader key
+
+The leader key is set to **Space**:
+
+```lua
+vim.g.mapleader = " "
+```
+
+<Note>
+  The leader key is a prefix key used for custom keybindings. With Space as the leader, you can create memorable shortcuts like `<Space>|` to split windows.
+</Note>
+
+## Active keymaps
+
+These are the currently configured keymaps in nvim-luffy:
+
+### Window management
+
+<CardGroup cols={2}>
+  <Card title="Split vertically" icon="grip-lines-vertical">
+    **Keymap:** `<leader>|` (Space + Pipe)
+    
+    Splits the current window vertically, creating a new window to the right.
+    
+    ```lua
+    keymap.set("n", "<leader>|", "<C-w>v", { 
+      desc = "Split window vertically" 
+    })
+    ```
+  </Card>
+  
+  <Card title="Split horizontally" icon="grip-lines">
+    **Keymap:** `<leader>sh` (Space + s + h)
+    
+    Splits the current window horizontally, creating a new window below.
+    
+    ```lua
+    keymap.set("n", "<leader>sh", "<C-w>s", { 
+      desc = "Split window horizontally" 
+    })
+    ```
+  </Card>
+</CardGroup>
+
+<Accordion title="Understanding window splits">
+  Window splits allow you to view multiple files or different parts of the same file simultaneously:
+  
+  - **Vertical split** (`<leader>|`): Creates side-by-side windows
+  - **Horizontal split** (`<leader>sh`): Creates stacked windows
+  
+  After splitting, you can navigate between windows using:
+  - `<C-w>h` - Move to left window
+  - `<C-w>j` - Move to window below
+  - `<C-w>k` - Move to window above
+  - `<C-w>l` - Move to right window
+</Accordion>
+
+### Buffer management
+
+<CardGroup cols={2}>
+  <Card title="Close buffer" icon="xmark">
+    **Keymap:** `<leader>bd` (Space + b + d)
+    
+    Closes the current buffer without closing the window.
+    
+    ```lua
+    keymap.set("n", "<leader>bd", "<cmd>bd<CR>", { 
+      desc = "Close buffer" 
+    })
+    ```
+  </Card>
+  
+  <Card title="Close all buffers" icon="trash">
+    **Keymap:** `<leader>ba` (Space + b + a)
+    
+    Closes all open buffers at once.
+    
+    ```lua
+    keymap.set("n", "<leader>ba", "<cmd>%bd<CR>", { 
+      desc = "Close all buffers" 
+    })
+    ```
+  </Card>
+</CardGroup>
+
+<Warning>
+  Using `<leader>ba` will close all buffers, including unsaved changes. Make sure to save your work before using this command.
+</Warning>
+
+## Keymap reference table
+
+Here's a quick reference of all configured keymaps:
+
+| Mode | Keymap | Action | Description |
+|------|--------|--------|-------------|
+| Normal | `<leader>\|` | `<C-w>v` | Split window vertically |
+| Normal | `<leader>sh` | `<C-w>s` | Split window horizontally |
+| Normal | `<leader>bd` | `:bd<CR>` | Close current buffer |
+| Normal | `<leader>ba` | `:%bd<CR>` | Close all buffers |
+
+## Commented out keymaps
+
+These keymaps are included in the source but commented out. You can uncomment them in your configuration if you want to use them:
+
+<Tabs>
+  <Tab title="Exit insert mode">
+    ```lua
+    -- keymap.set("i", "jk", "<ESC>", {desc = "Exit Insert mode with jk"})
+    ```
+    
+    This would allow you to press `j` then `k` quickly in insert mode to return to normal mode, as an alternative to pressing `<Esc>`.
+    
+    **Why it's commented out:** Some users find this interferes with typing words that contain "jk".
+  </Tab>
+  
+  <Tab title="Clear search highlights">
+    ```lua
+    -- keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
+    ```
+    
+    This would clear search highlights when you press `<leader>nh`.
+    
+    **Why it's commented out:** nvim-luffy uses an autocommand to automatically clear search highlights when the cursor moves (see autocommands.lua:13).
+  </Tab>
+</Tabs>
+
+## Customizing keymaps
+
+To add your own keymaps, use the `vim.keymap.set()` function:
+
+<CodeGroup>
+```lua Basic keymap
+vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { 
+  desc = "Save file" 
+})
+```
+
+```lua Multiple modes
+vim.keymap.set({"n", "v"}, "<leader>y", '"+y', { 
+  desc = "Copy to system clipboard" 
+})
+```
+
+```lua With options
+vim.keymap.set("n", "<leader>x", function()
+  vim.cmd("source %")
+end, { 
+  desc = "Source current file",
+  silent = true,
+  noremap = true
+})
+```
+</CodeGroup>
+
+## Mode reference
+
+<AccordionGroup>
+  <Accordion title="Normal mode ('n')">
+    The default mode for navigating and manipulating text. Most keymaps in this config use normal mode.
+  </Accordion>
+  
+  <Accordion title="Insert mode ('i')">
+    The mode for inserting text. The commented-out `jk` keymap uses insert mode.
+  </Accordion>
+  
+  <Accordion title="Visual mode ('v')">
+    The mode for selecting text. No visual mode keymaps are currently configured.
+  </Accordion>
+  
+  <Accordion title="Command-line mode ('c')">
+    The mode for entering Ex commands. No command-line mode keymaps are currently configured.
+  </Accordion>
+</AccordionGroup>
+
+## Full source code
+
+<Accordion title="View complete keymaps.lua">
+```lua
+vim.g.mapleader = " "
+local keymap = vim.keymap -- for conciseness
+
+-- press jk in insert mode to escape
+-- keymap.set("i", "jk", "<ESC>", {desc = "Exit Insert mode with jk"})
+
+-- press n to remove highlights
+-- keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
+
+-- window management
+keymap.set("n", "<leader>|", "<C-w>v", { desc = "Split window vertically" })
+keymap.set("n", "<leader>sh", "<C-w>s", { desc = "Split window horizontally" })
+
+keymap.set("n", "<leader>bd", "<cmd>bd<CR>", { desc = "Close buffer" })
+keymap.set("n", "<leader>ba", "<cmd>%bd<CR>", { desc = "Close all buffers" })
+```
+</Accordion>

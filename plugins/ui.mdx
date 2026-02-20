@@ -1,0 +1,421 @@
+---
+title: UI plugins
+description: Startup dashboard, colorschemes, and file explorer customization
+---
+
+These plugins customize Neovim's appearance with a beautiful startup screen, multiple colorschemes, and an integrated file explorer.
+
+## alpha-nvim (startup dashboard)
+
+alpha-nvim provides a customizable startup dashboard with ASCII art, quick actions, and a motivational quote.
+
+### Configuration
+
+```lua lua/leyland/plugins/alpha.lua
+return {
+  "goolord/alpha-nvim",
+  event = "VimEnter",
+  config = function()
+    local alpha = require("alpha")
+    local dashboard = require("alpha.themes.dashboard")
+    -- Configuration here
+  end,
+}
+```
+
+### The Luffy header
+
+The dashboard features custom Luffy ASCII art:
+
+```lua
+dashboard.section.header.val = {
+  "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⠶⠶⠶⠶⠤⠤⠤⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+  -- ... more ASCII art lines
+}
+```
+
+<Info>
+The ASCII art is Luffy from One Piece, fitting the "nvim-luffy" theme.
+</Info>
+
+### Quick actions
+
+The dashboard provides three main actions:
+
+```lua
+dashboard.section.buttons.val = {
+  dashboard.button("f", "  Find file", ":Telescope find_files <CR>"),
+  dashboard.button("r", "  Recent files", ":Telescope oldfiles <CR>"),
+  dashboard.button("q", "  Quit", ":qa<CR>"),
+}
+```
+
+<CardGroup cols={3}>
+  <Card title="Find file" icon="magnifying-glass">
+    Press `f` to open Telescope file finder
+  </Card>
+  <Card title="Recent files" icon="clock-rotate-left">
+    Press `r` to view recently opened files
+  </Card>
+  <Card title="Quit" icon="right-from-bracket">
+    Press `q` to exit Neovim
+  </Card>
+</CardGroup>
+
+### Footer quote
+
+A motivational One Piece-themed quote appears at the bottom:
+
+```lua
+dashboard.section.footer.val = {
+  "",
+  '"Maybe the One Piece was the commits you made along the way."',
+  "",
+}
+```
+
+### Layout
+
+The dashboard layout is carefully spaced:
+
+```lua
+dashboard.config.layout = {
+  { type = "padding", val = 2 },
+  dashboard.section.header,
+  { type = "padding", val = 2 },
+  dashboard.section.footer,  -- Quote appears here
+  { type = "padding", val = 2 },
+  dashboard.section.buttons,
+  { type = "padding", val = 1 },
+}
+```
+
+<Tip>
+The dashboard only appears when you open Neovim without arguments. Opening a file directly skips it for faster startup.
+</Tip>
+
+## Colorschemes
+
+nvim-luffy includes multiple colorschemes so you can choose your preferred aesthetic.
+
+### Available themes
+
+<Tabs>
+  <Tab title="Bamboo (default)">
+    A warm, nature-inspired theme with excellent readability.
+
+    ```lua
+    {
+      "ribru17/bamboo.nvim",
+      lazy = false,
+      priority = 1000,
+    }
+    ```
+
+    Set as default in the rose-pine config:
+    ```lua
+    vim.cmd.colorscheme("bamboo")
+    ```
+  </Tab>
+  <Tab title="Catppuccin">
+    Soothing pastel colorscheme with multiple flavors (mocha, macchiato, frappe, latte).
+
+    ```lua
+    {
+      "catppuccin/nvim",
+      name = "catppuccin",
+      priority = 1000,
+    }
+    ```
+
+    Switch with: `:colorscheme catppuccin`
+  </Tab>
+  <Tab title="Tokyo Night">
+    Clean, dark theme inspired by Tokyo's night skyline.
+
+    ```lua
+    {
+      "folke/tokyonight.nvim",
+      priority = 1000,
+    }
+    ```
+
+    Switch with: `:colorscheme tokyonight`
+  </Tab>
+  <Tab title="Rose Pine">
+    Low-contrast, warm theme with natural colors.
+
+    ```lua
+    {
+      "rose-pine/neovim",
+      name = "rose-pine",
+      priority = 1000,
+    }
+    ```
+
+    Switch with: `:colorscheme rose-pine`
+  </Tab>
+  <Tab title="Modus Themes">
+    Accessible themes with high contrast and readability.
+
+    ```lua
+    {
+      "miikanissi/modus-themes.nvim",
+      priority = 1000,
+    }
+    ```
+
+    Switch with: `:colorscheme modus_operandi` or `modus_vivendi`
+  </Tab>
+  <Tab title="One Dark">
+    Atom's iconic One Dark theme.
+
+    ```lua
+    {
+      "navarasu/onedark.nvim",
+      priority = 1000,
+    }
+    ```
+
+    Switch with: `:colorscheme onedark`
+  </Tab>
+</Tabs>
+
+### Switching colorschemes
+
+You can change colorschemes at runtime:
+
+```vim
+:colorscheme catppuccin
+:colorscheme tokyonight
+:colorscheme rose-pine
+:colorscheme bamboo
+```
+
+To change the default, edit `lua/leyland/plugins/colorscheme.lua`:
+
+```lua lua/leyland/plugins/colorscheme.lua
+config = function()
+  -- Set your default theme here
+  vim.cmd.colorscheme("bamboo")  -- Change this line
+end,
+```
+
+<Info>
+All colorschemes have `priority = 1000` to ensure they load before other plugins that might depend on colors.
+</Info>
+
+## nvim-tree (file explorer)
+
+nvim-tree is a file explorer sidebar with git integration, file operations, and custom keybindings.
+
+### Configuration
+
+```lua lua/leyland/plugins/nvim-tree.lua
+return {
+  "nvim-tree/nvim-tree.lua",
+  dependencies = "nvim-tree/nvim-web-devicons",
+  keys = {
+    { "<leader>e", "<cmd>NvimTreeFindFileToggle<cr>", desc = "Toggle file explorer" },
+  },
+}
+```
+
+### Opening the explorer
+
+<ParamField path="<leader>e" type="normal">
+  Toggle nvim-tree file explorer
+</ParamField>
+
+The explorer:
+- Opens on the **right side** of the screen
+- Shows the current file when opened
+- Displays relative line numbers
+- Shows git status indicators
+
+### View settings
+
+```lua
+view = {
+  width = 50,
+  relativenumber = true,
+  side = "right",
+}
+```
+
+### Custom keybindings
+
+Inside nvim-tree:
+
+<Tabs>
+  <Tab title="Navigation">
+    - **l** - Open file or expand directory
+    - **h** - Close directory or go to parent
+    - **j** - Move down
+    - **k** - Move up
+  </Tab>
+  <Tab title="File operations">
+    - **a** - Create new file or directory
+    - **d** - Delete file or directory
+    - **r** - Rename file or directory
+    - **x** - Cut file
+    - **c** - Copy file
+    - **p** - Paste file
+  </Tab>
+  <Tab title="View options">
+    - **H** - Toggle hidden files
+    - **R** - Refresh tree
+    - **Ctrl-]** - CD into directory
+    - **-** - Navigate up to parent directory
+  </Tab>
+  <Tab title="Actions">
+    - **o** - Open file
+    - **O** - Open file without closing tree
+    - **`<Tab>`** - Open file in preview
+    - **Ctrl-v** - Open in vertical split
+    - **Ctrl-x** - Open in horizontal split
+  </Tab>
+</Tabs>
+
+### Custom navigation mappings
+
+The config adds vim-style navigation:
+
+```lua
+local function on_attach(bufnr)
+  local api = require("nvim-tree.api")
+  local function opts(desc)
+    return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+  end
+
+  -- Default mappings
+  api.config.mappings.default_on_attach(bufnr)
+
+  -- Custom mappings
+  vim.keymap.set("n", "l", api.node.open.edit, opts("Open"))
+  vim.keymap.set("n", "h", api.node.navigate.parent_close, opts("Close Directory"))
+end
+```
+
+### Visual customization
+
+Indent markers and custom folder arrows:
+
+```lua
+renderer = {
+  indent_markers = {
+    enable = true,
+  },
+  icons = {
+    glyphs = {
+      folder = {
+        arrow_closed = "",
+        arrow_open = "",
+      },
+    },
+  },
+}
+```
+
+### Git integration
+
+nvim-tree shows git status with icons:
+
+- ✓ - Staged files
+- ✗ - Deleted files
+- ★ - Untracked files
+- ● - Modified files
+
+```lua
+git = {
+  ignore = false,  -- Show ignored files
+}
+```
+
+### File operations
+
+nvim-tree disables window picker for cleaner opening:
+
+```lua
+actions = {
+  open_file = {
+    window_picker = {
+      enable = false,
+    },
+  },
+}
+```
+
+### Filters
+
+Custom files are hidden from the tree:
+
+```lua
+filters = {
+  custom = { ".DS_Store" },
+}
+```
+
+<Tip>
+Press `H` inside nvim-tree to toggle hidden files, including git-ignored files and files matching your filters.
+</Tip>
+
+## UI workflow
+
+Here's how the UI plugins enhance your workflow:
+
+<Steps>
+  <Step title="Launch Neovim">
+    The alpha-nvim dashboard greets you with Luffy ASCII art and quick actions.
+  </Step>
+  <Step title="Choose an action">
+    Press `f` to find files, `r` for recent files, or open a file directly to skip the dashboard.
+  </Step>
+  <Step title="Explore with nvim-tree">
+    Press `<leader>e` to open the file explorer on the right side.
+  </Step>
+  <Step title="Navigate files">
+    Use `h`/`l` to expand/collapse directories, git status icons show changes.
+  </Step>
+  <Step title="Customize appearance">
+    Try different colorschemes with `:colorscheme <name>` until you find your favorite.
+  </Step>
+</Steps>
+
+<CodeGroup>
+```lua Dashboard on startup
+# Launch nvim without arguments
+nvim
+
+# See Luffy dashboard with:
+  [f] Find file
+  [r] Recent files
+  [q] Quit
+```
+
+```lua File explorer
+# Open file tree
+<leader>e
+
+# Navigate
+  l  - Open file/directory
+  h  - Close directory
+  a  - Create new file
+  d  - Delete
+  r  - Rename
+```
+
+```lua Change colorscheme
+# Try different themes
+:colorscheme catppuccin
+:colorscheme tokyonight
+:colorscheme bamboo
+
+# Or set default in config
+vim.cmd.colorscheme("your-choice")
+```
+</CodeGroup>
+
+<Info>
+All UI elements respect your chosen colorscheme and update automatically when you switch themes.
+</Info>

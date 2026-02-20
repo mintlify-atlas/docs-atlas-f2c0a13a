@@ -1,80 +1,313 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get productive with nvim-luffy in under 5 minutes
 ---
 
-## Get started in three steps
+## Your first launch
 
-Get your documentation site running locally and make your first customization.
+After installation, launch Neovim from any directory:
 
-### Step 1: Set up your local environment
+```bash
+nvim
+```
+
+You'll be greeted with the Luffy dashboard featuring ASCII art and the iconic quote:
+
+> "Maybe the One Piece was the commits you made along the way."
+
+<CardGroup cols={3}>
+  <Card title="Find file" icon="magnifying-glass">
+    Press `f` to search files
+  </Card>
+  <Card title="Recent files" icon="clock">
+    Press `r` to see recent files
+  </Card>
+  <Card title="Quit" icon="door-open">
+    Press `q` to exit
+  </Card>
+</CardGroup>
+
+## Essential keybindings
+
+All custom keybindings use **Space** as the leader key. Here are the most important ones:
+
+### File navigation
+
+<CodeGroup>
+```vim Find files
+<Space><Space>  " Fuzzy find files in current directory
+```
+
+```vim Recent files
+<Space>fr       " Find recent files
+```
+
+```vim Live grep
+<Space>/        " Search for text across all files
+```
+
+```vim Find under cursor
+<Space>fc       " Search for word under cursor
+```
+</CodeGroup>
+
+<Accordion title="Telescope tips">
+  When the Telescope picker is open:
+  - `Ctrl+j` / `Ctrl+k`: Move down/up in results
+  - `Ctrl+q`: Send selected items to quickfix list
+  - `Enter`: Open selected file
+  - `Esc`: Close the picker
+</Accordion>
+
+### Harpoon (lightning-fast file switching)
+
+Harpoon lets you mark important files and jump to them instantly:
+
+```vim
+<Space>H        " Add current file to Harpoon
+<Space>h        " Open Harpoon quick menu
+<Space>1-9      " Jump to Harpoon file 1-9
+```
+
+<Steps>
+  <Step title="Mark your files">
+    Open a file you use frequently and press `<Space>H` to add it to Harpoon
+  </Step>
+  <Step title="Mark more files">
+    Repeat for other important files (up to 9 files)
+  </Step>
+  <Step title="Jump instantly">
+    Press `<Space>1` to jump to the first file, `<Space>2` for the second, etc.
+  </Step>
+</Steps>
+
+<Note>
+  Harpoon is perfect for files you switch between constantly, like a main component and its test file.
+</Note>
+
+### Window management
+
+```vim
+<Space>|        " Split window vertically
+<Space>sh       " Split window horizontally
+<C-w>w          " Switch between windows
+<C-w>q          " Close current window
+```
+
+### Buffer management
+
+```vim
+<Space>bd       " Close current buffer
+<Space>ba       " Close all buffers
+```
+
+## Working with LSP
+
+When editing a file with LSP support (JavaScript, TypeScript, Python, etc.), you get:
+
+### Code intelligence
+
+```vim
+gd              " Go to definition
+gr              " Find references
+K               " Show hover documentation
+<Space>ca       " Code actions (fix errors, refactor)
+<Space>rn       " Rename symbol
+```
+
+### Diagnostics
+
+```vim
+]d              " Next diagnostic
+[d              " Previous diagnostic
+<Space>d        " Show diagnostic details
+```
+
+<Accordion title="Understanding diagnostics">
+  LSP diagnostics appear as:
+  - **E**: Errors (red)
+  - **W**: Warnings (yellow)
+  - **I**: Information (blue)
+  - **H**: Hints (gray)
+  
+  They show up in:
+  - The sign column (left of line numbers)
+  - Inline virtual text
+  - The Trouble window (`:Trouble`)
+</Accordion>
+
+### Autocompletion
+
+Start typing and nvim-cmp will automatically suggest completions:
+
+```vim
+<C-n>           " Next completion
+<C-p>           " Previous completion
+<C-Space>       " Trigger completion manually
+<CR>            " Confirm selection
+```
+
+Completions come from:
+- LSP (smart suggestions based on types)
+- Buffer (words from current file)
+- Path (file paths)
+- Luasnip (code snippets)
+
+## File explorer
+
+Toggle the file tree with nvim-tree:
+
+```vim
+<Space>e        " Toggle file explorer
+```
+
+Inside nvim-tree:
+- `Enter`: Open file or folder
+- `a`: Create new file
+- `d`: Delete file
+- `r`: Rename file
+- `y`: Copy file
+- `p`: Paste file
+- `g?`: Show help
+
+## Git integration
+
+### Neogit (Git client)
+
+```vim
+:Neogit         " Open Neogit status
+```
+
+Inside Neogit:
+- `s`: Stage/unstage file or hunk
+- `c`: Commit
+- `P`: Push
+- `p`: Pull
+- `?`: Show keybindings
+
+### Diffview
+
+```vim
+:DiffviewOpen   " View git diff
+:DiffviewFileHistory  " File history
+```
+
+<Note>
+  Neogit and Diffview work seamlessly together. Use Neogit for staging and committing, Diffview for reviewing changes.
+</Note>
+
+## Changing themes
+
+nvim-luffy includes 6 beautiful themes. Change the active theme by editing `lua/leyland/plugins/colorscheme.lua`:
+
+```lua lua/leyland/plugins/colorscheme.lua
+config = function()
+  -- Set your default theme here
+  vim.cmd.colorscheme("bamboo")  -- Default
+  -- vim.cmd.colorscheme("catppuccin")
+  -- vim.cmd.colorscheme("tokyonight")
+  -- vim.cmd.colorscheme("rose-pine")
+  -- vim.cmd.colorscheme("onedark")
+  -- vim.cmd.colorscheme("modus")
+end,
+```
+
+Save the file and run `:source %` or restart Neovim.
+
+## Quick reference cheatsheet
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+  <Accordion title="File operations">
+    | Keybinding | Action |
+    |------------|--------|
+    | `<Space><Space>` | Find files |
+    | `<Space>fr` | Recent files |
+    | `<Space>/` | Live grep |
+    | `<Space>fc` | Find word under cursor |
+    | `<Space>ft` | Find TODOs |
+    | `<Space>fk` | Find keymaps |
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+  
+  <Accordion title="Harpoon">
+    | Keybinding | Action |
+    |------------|--------|
+    | `<Space>H` | Add file to Harpoon |
+    | `<Space>h` | Toggle Harpoon menu |
+    | `<Space>1-9` | Jump to Harpoon file 1-9 |
+  </Accordion>
+  
+  <Accordion title="LSP">
+    | Keybinding | Action |
+    |------------|--------|
+    | `gd` | Go to definition |
+    | `gr` | Find references |
+    | `K` | Hover documentation |
+    | `<Space>ca` | Code actions |
+    | `<Space>rn` | Rename symbol |
+    | `]d` | Next diagnostic |
+    | `[d` | Previous diagnostic |
+  </Accordion>
+  
+  <Accordion title="Windows & buffers">
+    | Keybinding | Action |
+    |------------|--------|
+    | `<Space>\|` | Split vertically |
+    | `<Space>sh` | Split horizontally |
+    | `<Space>bd` | Close buffer |
+    | `<Space>ba` | Close all buffers |
+    | `<C-w>w` | Switch windows |
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+## Pro tips
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+<CardGroup cols={2}>
+  <Card title="Use Harpoon for your workflow" icon="bullseye">
+    Mark your main files (e.g., component, test, config) and jump between them with `<Space>1-3` instead of searching
+  </Card>
+  
+  <Card title="Learn Telescope patterns" icon="telescope">
+    In file finder, type partial matches: `usrmd` finds `user-model.ts`. Use fuzzy matching to your advantage
+  </Card>
+  
+  <Card title="Explore with :Lazy" icon="plug">
+    Run `:Lazy` to see all installed plugins, update them, or check their configurations
+  </Card>
+  
+  <Card title="Check available keymaps" icon="keyboard">
+    Press `<Space>fk` to search through all configured keybindings
+  </Card>
+</CardGroup>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<Warning>
+  **Avoid these common mistakes:**
+  - Don't edit files in `~/.local/share/nvim/lazy/` (plugin directory). Edit configs in `~/.config/nvim/lua/leyland/` instead
+  - Don't run `:PlugInstall` (that's for vim-plug). Use `:Lazy sync` for plugin management
+  - Don't forget to source your config after changes: `:source ~/.config/nvim/init.lua`
+</Warning>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you know the basics:
 
-<CardGroup cols={2}>
+<Steps>
+  <Step title="Practice the keybindings">
+    Open a project and practice using Telescope and Harpoon for navigation
+  </Step>
+  
+  <Step title="Explore LSP features">
+    Try code actions (`<Space>ca`) on a warning to see automatic fixes
+  </Step>
+  
+  <Step title="Customize your config">
+    Browse `~/.config/nvim/lua/leyland/` to understand the structure
+  </Step>
+  
+  <Step title="Add your own plugins">
+    Create a new file in `lua/leyland/plugins/` to add personal plugins
+  </Step>
+</Steps>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
+<Card title="Learn more" icon="book" href="/customization">
+  Ready to customize nvim-luffy? Check out the customization guide
 </Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

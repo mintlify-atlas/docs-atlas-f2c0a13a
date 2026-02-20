@@ -1,0 +1,247 @@
+---
+title: Installation
+description: Step-by-step guide to installing nvim-luffy on your system
+---
+
+## Prerequisites
+
+Before installing nvim-luffy, ensure you have the following installed on your system:
+
+<CardGroup cols={2}>
+  <Card title="Neovim 0.9.0+" icon="terminal">
+    Check your version with `nvim --version`
+  </Card>
+  <Card title="Git" icon="git-alt">
+    Required for cloning the repository and plugin management
+  </Card>
+  <Card title="Node.js & npm" icon="node-js">
+    Needed for LSP servers like TypeScript and ESLint
+  </Card>
+  <Card title="A Nerd Font" icon="font">
+    For proper icon display (recommended: JetBrainsMono Nerd Font)
+  </Card>
+</CardGroup>
+
+<Accordion title="Optional but recommended">
+  - **ripgrep**: For Telescope live grep functionality (`brew install ripgrep` or `apt install ripgrep`)
+  - **fd**: For faster file finding (`brew install fd` or `apt install fd-find`)
+  - **lazygit**: For enhanced git integration (`brew install lazygit`)
+  - **A terminal with true color support**: For the best colorscheme experience
+</Accordion>
+
+<Warning>
+  If you have an existing Neovim configuration, **back it up first**. This installation will replace your current config.
+  
+  ```bash
+  mv ~/.config/nvim ~/.config/nvim.backup
+  mv ~/.local/share/nvim ~/.local/share/nvim.backup
+  ```
+</Warning>
+
+## Installation steps
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone nvim-luffy into your Neovim configuration directory:
+    
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/nvim-luffy.git ~/.config/nvim
+    ```
+    
+    <Note>
+      On Windows, use `%LOCALAPPDATA%\nvim` instead of `~/.config/nvim`
+    </Note>
+  </Step>
+  
+  <Step title="Launch Neovim">
+    Start Neovim for the first time:
+    
+    ```bash
+    nvim
+    ```
+    
+    You'll see the Luffy ASCII art dashboard while Lazy.nvim automatically:
+    - Installs itself
+    - Downloads all plugins
+    - Sets up the configuration
+    
+    This process takes 1-2 minutes depending on your internet connection.
+  </Step>
+  
+  <Step title="Install LSP servers">
+    Once plugins are installed, open the Mason installer:
+    
+    ```vim
+    :Mason
+    ```
+    
+    Mason will automatically install the configured language servers:
+    - TypeScript (`ts_ls`)
+    - HTML, CSS, Tailwind CSS
+    - Lua (`lua_ls`)
+    - Python (`pyright`)
+    - ESLint, GraphQL, Svelte, Prisma
+    
+    You can monitor the installation progress in the Mason UI.
+  </Step>
+  
+  <Step title="Install formatters and linters">
+    Mason Tool Installer will automatically install:
+    - **Formatters**: Prettier, Stylua, Black, isort
+    - **Linters**: Pylint, ESLint_d
+    
+    You can verify installations with:
+    
+    ```vim
+    :MasonToolsInstall
+    ```
+  </Step>
+  
+  <Step title="Update Treesitter parsers">
+    Treesitter parsers install automatically, but you can manually update them:
+    
+    ```vim
+    :TSUpdate
+    ```
+    
+    This installs syntax parsers for JavaScript, TypeScript, Python, Lua, HTML, CSS, and 20+ more languages.
+  </Step>
+</Steps>
+
+## Post-installation verification
+
+Verify your installation is working correctly:
+
+<CodeGroup>
+```vim Health check
+:checkhealth
+```
+
+```vim Check lazy.nvim
+:Lazy
+```
+
+```vim Check LSP
+:LspInfo
+```
+
+```vim Check Treesitter
+:TSInstallInfo
+```
+</CodeGroup>
+
+<Accordion title="Understanding health check results">
+  The `:checkhealth` command runs diagnostics on your Neovim setup:
+  
+  - **OK** (green): Everything is working correctly
+  - **WARNING** (yellow): Optional features missing but not critical
+  - **ERROR** (red): Something needs to be fixed
+  
+  Common warnings you can safely ignore:
+  - Missing Python 2 support (deprecated)
+  - Missing Ruby support (unless you need it)
+</Accordion>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Plugins won't install">
+    **Problem**: Lazy.nvim shows errors during plugin installation
+    
+    **Solutions**:
+    1. Check your internet connection
+    2. Ensure git is properly configured:
+       ```bash
+       git config --global user.name "Your Name"
+       git config --global user.email "your@email.com"
+       ```
+    3. Clear the plugin cache and reinstall:
+       ```vim
+       :Lazy clear
+       :Lazy sync
+       ```
+  </Accordion>
+  
+  <Accordion title="LSP not working">
+    **Problem**: No autocompletion or diagnostics appearing
+    
+    **Solutions**:
+    1. Verify the LSP server is installed in Mason (`:Mason`)
+    2. Check if LSP is attached to the buffer:
+       ```vim
+       :LspInfo
+       ```
+    3. Restart the LSP server:
+       ```vim
+       :LspRestart
+       ```
+    4. For Node.js-based servers, ensure npm is in your PATH
+  </Accordion>
+  
+  <Accordion title="Icons not displaying">
+    **Problem**: Squares or missing glyphs instead of icons
+    
+    **Solutions**:
+    1. Install a Nerd Font from [nerdfonts.com](https://www.nerdfonts.com/)
+    2. Set your terminal to use the Nerd Font
+    3. If using Kitty or Alacritty, update your terminal config:
+       ```yaml
+       # alacritty.yml
+       font:
+         normal:
+           family: JetBrainsMono Nerd Font
+       ```
+  </Accordion>
+  
+  <Accordion title="Slow startup time">
+    **Problem**: Neovim takes several seconds to start
+    
+    **Solutions**:
+    1. Check plugin load times:
+       ```vim
+       :Lazy profile
+       ```
+    2. Ensure plugins are lazy-loading (most are configured this way)
+    3. Disable unused language servers in `lua/leyland/plugins/lsp/mason.lua`
+  </Accordion>
+  
+  <Accordion title="Treesitter errors">
+    **Problem**: Syntax highlighting broken or showing errors
+    
+    **Solutions**:
+    1. Update all parsers:
+       ```vim
+       :TSUpdate
+       ```
+    2. Reinstall a specific parser:
+       ```vim
+       :TSInstall javascript
+       ```
+    3. On macOS, ensure you have Command Line Tools:
+       ```bash
+       xcode-select --install
+       ```
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  If you encounter persistent issues, check the [GitHub Issues](https://github.com/YOUR_USERNAME/nvim-luffy/issues) or open a new issue with:
+  - Your operating system
+  - Neovim version (`nvim --version`)
+  - Error messages from `:checkhealth`
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart guide" icon="rocket" href="/quickstart">
+    Learn the essential keybindings and features
+  </Card>
+  <Card title="Customization" icon="wrench" href="/customization">
+    Make nvim-luffy your own
+  </Card>
+</CardGroup>
+
+<Note>
+  nvim-luffy is designed to work out of the box, but feel free to explore the configuration files in `~/.config/nvim/lua/leyland/` to customize it to your needs.
+</Note>

@@ -1,0 +1,254 @@
+---
+title: Editor options
+description: Core Neovim settings and editor behavior configuration
+---
+
+The `options.lua` file configures Neovim's core editor behavior, including line numbers, indentation, search settings, UI appearance, and LSP logging.
+
+## Source location
+
+`lua/leyland/core/options.lua`
+
+## Configuration overview
+
+<Tabs>
+  <Tab title="Editor behavior">
+    Configure how the editor displays content and handles basic operations.
+    
+    ```lua
+    local opt = vim.opt
+    
+    opt.relativenumber = true  -- Show relative line numbers
+    opt.number = true          -- Show current line number
+    opt.wrap = false           -- Disable line wrapping
+    opt.swapfile = false       -- Disable swap files
+    ```
+  </Tab>
+  
+  <Tab title="Indentation">
+    Consistent indentation settings using spaces.
+    
+    ```lua
+    opt.tabstop = 2        -- 2 spaces for tabs
+    opt.shiftwidth = 2     -- 2 spaces for indent width
+    opt.expandtab = true   -- Expand tab to spaces
+    opt.autoindent = true  -- Copy indent of current line to new line
+    ```
+  </Tab>
+  
+  <Tab title="Search">
+    Smart case-insensitive search configuration.
+    
+    ```lua
+    opt.ignorecase = true  -- Case insensitive search
+    opt.smartcase = true   -- Uses mixed case for case sensitive search
+    ```
+  </Tab>
+  
+  <Tab title="UI">
+    Minimal UI with custom winbar and no statusline.
+    
+    ```lua
+    opt.cmdheight = 0                        -- Hide command line
+    opt.laststatus = 0                       -- Hide the statusline
+    opt.winbar = "%f %h%m%r%=%l,%c %P"       -- Custom winbar format
+    opt.signcolumn = "yes"                   -- Always show sign column
+    opt.background = "dark"                  -- Dark background
+    ```
+  </Tab>
+</Tabs>
+
+## Complete configuration
+
+### Line numbers
+
+<ParamField path="relativenumber" type="boolean" default="true">
+  Shows line numbers relative to the cursor position. Makes it easy to use motion commands like `5j` or `10k`.
+</ParamField>
+
+<ParamField path="number" type="boolean" default="true">
+  Shows the absolute line number for the current line. When combined with `relativenumber`, you get hybrid line numbers.
+</ParamField>
+
+### Command line and status
+
+<ParamField path="cmdheight" type="number" default="0">
+  Sets the height of the command line to 0, hiding it when not in use for a cleaner interface.
+</ParamField>
+
+<ParamField path="laststatus" type="number" default="0">
+  Disables the statusline completely. This creates a minimal UI where status information is shown elsewhere (like the winbar).
+</ParamField>
+
+<ParamField path="winbar" type="string" default="%f %h%m%r%=%l,%c %P">
+  Configures the window bar to display:
+  - `%f` - Filename
+  - `%h` - Help buffer flag
+  - `%m` - Modified flag
+  - `%r` - Readonly flag
+  - `%=` - Right align the following
+  - `%l,%c` - Line and column number
+  - `%P` - Percentage through file
+</ParamField>
+
+### Tabs and indentation
+
+<Note>
+  All indentation is set to 2 spaces with automatic tab expansion. This ensures consistent formatting across your codebase.
+</Note>
+
+<ParamField path="tabstop" type="number" default="2">
+  Number of spaces that a tab character counts for. Set to 2 for compact indentation.
+</ParamField>
+
+<ParamField path="shiftwidth" type="number" default="2">
+  Number of spaces to use for each step of autoindent. Used for commands like `>>` and `<<`.
+</ParamField>
+
+<ParamField path="expandtab" type="boolean" default="true">
+  Converts tabs to spaces when you press the Tab key. Ensures consistent indentation across different editors.
+</ParamField>
+
+<ParamField path="autoindent" type="boolean" default="true">
+  Copies the indent from the current line when starting a new line. See `:h autoindent` for more details.
+</ParamField>
+
+### Display settings
+
+<ParamField path="wrap" type="boolean" default="false">
+  Disables line wrapping. Long lines will extend beyond the screen width and require horizontal scrolling.
+</ParamField>
+
+<ParamField path="swapfile" type="boolean" default="false">
+  Disables swap file creation. Swap files are used for crash recovery, but can clutter your working directory.
+</ParamField>
+
+### Search settings
+
+<Accordion title="Smart case-insensitive search">
+  The combination of `ignorecase` and `smartcase` provides intelligent search behavior:
+  
+  - Search is case-insensitive by default
+  - Becomes case-sensitive when you include uppercase letters
+  
+  **Examples:**
+  - `/hello` matches "hello", "Hello", "HELLO"
+  - `/Hello` only matches "Hello"
+  
+  ```lua
+  opt.ignorecase = true -- Case insensitive search
+  opt.smartcase = true  -- Uses mixed case for case sensitive search
+  ```
+</Accordion>
+
+### Color and appearance
+
+<ParamField path="background" type="string" default="dark">
+  Sets the background mode to dark. Colorschemes use this to adjust their colors appropriately.
+</ParamField>
+
+<ParamField path="signcolumn" type="string" default="yes">
+  Always displays the sign column (left gutter). Prevents text from shifting when signs appear (like LSP diagnostics or git changes).
+</ParamField>
+
+### Editing behavior
+
+<ParamField path="backspace" type="string" default="indent,eol,start">
+  Allows backspace to delete:
+  - `indent` - Autoindent spaces
+  - `eol` - Line breaks (join lines)
+  - `start` - Characters before insert mode started
+</ParamField>
+
+### Clipboard integration
+
+<ParamField path="clipboard" type="string" default="append unnamedplus">
+  Uses the system clipboard as the default register. Yank and paste operations sync with your system clipboard.
+  
+  ```lua
+  opt.clipboard:append("unnamedplus")
+  ```
+</ParamField>
+
+<Note>
+  This means `yy` copies to your system clipboard and `p` can paste from it. You can share text with other applications seamlessly.
+</Note>
+
+### Window splitting
+
+<ParamField path="splitright" type="boolean" default="true">
+  Opens vertical splits to the right of the current window instead of the left.
+</ParamField>
+
+<ParamField path="splitbelow" type="boolean" default="true">
+  Opens horizontal splits below the current window instead of above.
+</ParamField>
+
+## LSP configuration
+
+<CodeGroup>
+```lua options.lua
+vim.lsp.set_log_level("error") -- Only show errors, not warnings
+```
+</CodeGroup>
+
+The LSP log level is set to `"error"` to reduce noise in the LSP logs. You'll only see error messages, not informational or warning messages.
+
+## Netrw configuration
+
+<CodeGroup>
+```lua options.lua
+vim.cmd("let g:netrw_liststyle = 3")
+```
+</CodeGroup>
+
+Sets Netrw (Neovim's built-in file explorer) to use tree-style listing (style 3) for a more intuitive directory view.
+
+## Full source code
+
+<Accordion title="View complete options.lua">
+```lua
+vim.cmd("let g:netrw_liststyle = 3")
+local opt = vim.opt
+opt.relativenumber = true
+opt.cmdheight = 0
+opt.laststatus = 0 -- Hide the statusline
+opt.winbar = "%f %h%m%r%=%l,%c %P"
+opt.number = true
+
+-- tabs & indentation
+opt.tabstop = 2
+opt.shiftwidth = 2 -- 2 spaces for indent width
+opt.expandtab = true -- expand tab to spaces
+opt.autoindent = true -- copy indent of current line to new line
+-- :h autoindent for help
+
+opt.wrap = false
+
+-- search settings
+opt.ignorecase = true -- case insensitive search
+opt.smartcase = true -- uses mixed case for case sensitive search
+
+-- opt.cursorline = true
+
+opt.swapfile = false
+-- turn on termguicolors for tokyonight colorscheme to work
+
+-- opt.termguicolors = true
+opt.background = "dark" -- colorschemes can be light or dark
+opt.signcolumn = "yes" -- show sign column so that text doesnt shift
+
+-- backspace
+opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or insert mode start position
+
+-- clipboard
+opt.clipboard:append("unnamedplus") -- use system clipboard as default register
+
+-- split windows
+opt.splitright = true -- split vertical window to the right
+opt.splitbelow = true -- split horizontal window to the bottom
+
+-- LSP
+vim.lsp.set_log_level("error") -- Only show errors, not warnings
+```
+</Accordion>

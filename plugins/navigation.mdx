@@ -1,0 +1,374 @@
+---
+title: Navigation plugins
+description: Fuzzy finding, file marking, and jump navigation with Telescope, Harpoon, and Flash
+---
+
+Efficient navigation is key to productivity. These plugins help you quickly find files, jump between locations, and navigate your codebase.
+
+## Telescope (fuzzy finder)
+
+Telescope is a powerful fuzzy finder for files, text, commands, and more. It's your primary tool for navigating projects.
+
+### Configuration
+
+```lua lua/leyland/plugins/telescope.lua
+return {
+  "nvim-telescope/telescope.nvim",
+  branch = "0.1.x",
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+    "nvim-tree/nvim-web-devicons",
+    "folke/todo-comments.nvim",
+  },
+}
+```
+
+### Features
+
+<CardGroup cols={2}>
+  <Card title="File finding" icon="file-search">
+    Fuzzy search all files in your project
+  </Card>
+  <Card title="Live grep" icon="magnifying-glass">
+    Search text across your entire codebase
+  </Card>
+  <Card title="Recent files" icon="clock-rotate-left">
+    Quick access to recently opened files
+  </Card>
+  <Card title="Keymaps" icon="keyboard">
+    Search and execute any keymap
+  </Card>
+</CardGroup>
+
+### Display configuration
+
+Telescope shows filenames first for easier scanning:
+
+```lua
+defaults = {
+  path_display = { "filename_first" },
+  mappings = {
+    i = {
+      ["<C-k>"] = actions.move_selection_previous,
+      ["<C-j>"] = actions.move_selection_next,
+      ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist,
+    },
+  },
+}
+```
+
+### Keybindings
+
+<ParamField path="<leader><leader>" type="normal">
+  Find files in current working directory
+</ParamField>
+
+<ParamField path="<leader>fr" type="normal">
+  Find recent files (oldfiles)
+</ParamField>
+
+<ParamField path="<leader>/" type="normal">
+  Live grep - search text across all files
+</ParamField>
+
+<ParamField path="<leader>fc" type="normal">
+  Find string under cursor in project
+</ParamField>
+
+<ParamField path="<leader>ft" type="normal">
+  Find TODO comments using todo-comments
+</ParamField>
+
+<ParamField path="<leader>fk" type="normal">
+  Search all keymaps
+</ParamField>
+
+### Inside Telescope
+
+When the Telescope picker is open:
+
+<Tabs>
+  <Tab title="Navigation">
+    - **Ctrl-j** - Move to next result
+    - **Ctrl-k** - Move to previous result
+  </Tab>
+  <Tab title="Actions">
+    - **Enter** - Open selected file
+    - **Ctrl-x** - Open in horizontal split
+    - **Ctrl-v** - Open in vertical split
+    - **Ctrl-t** - Open in new tab
+  </Tab>
+  <Tab title="Selection">
+    - **Tab** - Toggle selection
+    - **Ctrl-q** - Send selected to quickfix list
+  </Tab>
+</Tabs>
+
+### FZF native integration
+
+Telescope uses fzf-native for faster sorting:
+
+```lua
+telescope.load_extension("fzf")
+```
+
+<Info>
+fzf-native is written in C and provides significantly better performance than Lua-based sorting.
+</Info>
+
+## Harpoon (file marking)
+
+Harpoon lets you mark files and quickly jump between them using number keys. Perfect for navigating between frequently-used files.
+
+### Configuration
+
+```lua lua/leyland/plugins/harpoon.lua
+return {
+  "ThePrimeagen/harpoon",
+  branch = "harpoon2",
+  opts = {
+    menu = {
+      width = vim.api.nvim_win_get_width(0) - 4,
+    },
+    settings = {
+      save_on_toggle = true,
+    },
+  },
+}
+```
+
+### Keybindings
+
+<ParamField path="<leader>H" type="normal">
+  Add current file to Harpoon list
+</ParamField>
+
+<ParamField path="<leader>h" type="normal">
+  Toggle Harpoon quick menu
+</ParamField>
+
+<ParamField path="<leader>1-9" type="normal">
+  Jump directly to harpooned file 1-9
+</ParamField>
+
+### Workflow
+
+1. **Mark important files** - Press `<leader>H` in files you frequently visit
+2. **View marked files** - Press `<leader>h` to see your Harpoon list
+3. **Quick navigation** - Press `<leader>1`, `<leader>2`, etc. to jump instantly
+
+```lua
+-- Add file to harpoon
+{
+  "<leader>H",
+  function()
+    require("harpoon"):list():add()
+  end,
+  desc = "Harpoon File",
+}
+
+-- Jump to harpooned files
+for i = 1, 9 do
+  table.insert(keys, {
+    "<leader>" .. i,
+    function()
+      require("harpoon"):list():select(i)
+    end,
+    desc = "Harpoon to File " .. i,
+  })
+end
+```
+
+<Tip>
+Harpoon is perfect for jumping between related files like a component and its test file, or a frontend and backend implementation.
+</Tip>
+
+## flash.nvim (jump navigation)
+
+Flash provides lightning-fast navigation to any visible location on screen using search labels.
+
+### Configuration
+
+```lua lua/leyland/plugins/flash.lua
+return {
+  "folke/flash.nvim",
+  event = "VeryLazy",
+  opts = {
+    modes = {
+      char = {
+        char_actions = function(motion)
+          return {
+            [";"] = "next",
+            [","] = "prev",
+          }
+        end,
+      },
+    },
+  },
+}
+```
+
+### Keybindings
+
+<ParamField path="s" type="normal/visual/operator">
+  Flash jump - search and jump to any location
+</ParamField>
+
+<ParamField path="S" type="normal/visual/operator">
+  Flash Treesitter - select Treesitter nodes
+</ParamField>
+
+<ParamField path="r" type="operator">
+  Remote Flash - operate on remote location
+</ParamField>
+
+<ParamField path="R" type="operator/visual">
+  Treesitter Search - search in Treesitter nodes
+</ParamField>
+
+<ParamField path="Ctrl-s" type="command">
+  Toggle Flash Search in command mode
+</ParamField>
+
+<ParamField path="Ctrl-Space" type="normal/visual/operator">
+  Treesitter incremental selection
+</ParamField>
+
+### Modes
+
+<Accordion title="Flash jump (s)">
+  Type `s` followed by a search pattern. Flash highlights all matches with labels. Type the label to jump instantly.
+
+  ```lua
+  { "s", mode = { "n", "x", "o" }, 
+    function() require("flash").jump() end, 
+    desc = "Flash" 
+  }
+  ```
+</Accordion>
+
+<Accordion title="Treesitter (S)">
+  Press `S` to select Treesitter nodes like functions, classes, or parameters. Useful for visual selection and text objects.
+
+  ```lua
+  { "S", mode = { "n", "o", "x" }, 
+    function() require("flash").treesitter() end, 
+    desc = "Flash Treesitter" 
+  }
+  ```
+</Accordion>
+
+<Accordion title="Remote operations (r)">
+  Use `r` in operator-pending mode to operate on a remote location. For example, `drs` deletes to a Flash jump target.
+
+  ```lua
+  { "r", mode = "o", 
+    function() require("flash").remote() end, 
+    desc = "Remote Flash" 
+  }
+  ```
+</Accordion>
+
+<Accordion title="Incremental selection (Ctrl-Space)">
+  Press Ctrl-Space to start selecting Treesitter nodes. Press again to expand selection, Backspace to shrink.
+
+  ```lua
+  { "<c-space>", mode = { "n", "o", "x" },
+    function()
+      require("flash").treesitter({
+        actions = {
+          ["<c-space>"] = "next",
+          ["<BS>"] = "prev"
+        }
+      }) 
+    end
+  }
+  ```
+</Accordion>
+
+### Character navigation
+
+Flash enhances character search with `;` and `,` for next/previous:
+
+```lua
+char = {
+  char_actions = function(motion)
+    return {
+      [";"] = "next",
+      [","] = "prev",
+    }
+  end,
+}
+```
+
+## Navigation workflow
+
+Here's how these tools work together in a typical workflow:
+
+### Finding files
+
+<Steps>
+  <Step title="Use Telescope for unknown locations">
+    When you don't know exactly where something is, press `<leader><leader>` to search all files or `<leader>/` to grep for text.
+  </Step>
+  <Step title="Mark important files with Harpoon">
+    Once you find files you'll revisit, press `<leader>H` to add them to Harpoon.
+  </Step>
+  <Step title="Jump between marked files">
+    Use `<leader>1-9` to instantly jump between your most important files.
+  </Step>
+  <Step title="Navigate within files with Flash">
+    Use `s` to jump to any visible location, or `S` to select code structures.
+  </Step>
+</Steps>
+
+### Example session
+
+```bash
+# Project navigation workflow
+
+1. <leader><leader>     # Find main component file
+2. <leader>H            # Harpoon it
+3. <leader>/            # Search for "test" to find test file
+4. <leader>H            # Harpoon the test file
+5. <leader>1            # Jump back to component
+6. s<pattern>           # Flash jump to specific function
+7. <leader>2            # Jump to test file
+```
+
+<CodeGroup>
+```lua Telescope: Find files
+-- Search for "user" in filenames
+:Telescope find_files
+> user
+
+Results:
+  UserProfile.tsx
+  UserSettings.tsx
+  useUserData.ts
+```
+
+```lua Harpoon: Quick access
+-- View harpooned files
+<leader>h
+
+Harpoon:
+  1. src/components/UserProfile.tsx
+  2. src/hooks/useUserData.ts
+  3. src/tests/user.test.ts
+```
+
+```lua Flash: Jump to location
+-- Press 's' then search pattern
+s error
+
+  ab cd ef gh ij    # Labels appear
+  ↓
+  Type label to jump
+```
+</CodeGroup>
+
+<Tip>
+Combine these tools: Use Telescope to discover, Harpoon to mark frequently-used files, and Flash for precise in-file navigation.
+</Tip>

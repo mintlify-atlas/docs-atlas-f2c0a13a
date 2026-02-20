@@ -1,0 +1,465 @@
+---
+title: Git plugins
+description: Git integration with Neogit interface and Diffview for reviewing changes
+---
+
+These plugins provide a powerful git workflow directly inside Neovim with a Magit-inspired interface and comprehensive diff viewing.
+
+## Neogit (git interface)
+
+Neogit provides a text-based UI for git operations, inspired by Emacs's Magit. It's a complete git interface that lets you stage, commit, push, pull, and manage branches without leaving Neovim.
+
+### Configuration
+
+```lua lua/leyland/plugins/neogit.lua
+return {
+  "NeogitOrg/neogit",
+  lazy = true,
+  dependencies = {
+    "nvim-lua/plenary.nvim",       -- required
+    "sindrets/diffview.nvim",      -- optional - Diff integration
+    "nvim-telescope/telescope.nvim", -- optional
+    "ibhagwan/fzf-lua",            -- optional
+    "nvim-mini/mini.pick",         -- optional
+    "folke/snacks.nvim",           -- optional
+  },
+  cmd = "Neogit",
+  keys = {
+    {
+      "<leader>gg",
+      function()
+        require("neogit").open({ kind = "floating" })
+      end,
+      desc = "Neogit (floating)",
+    },
+  },
+}
+```
+
+### Opening Neogit
+
+<ParamField path="<leader>gg" type="normal">
+  Open Neogit in a floating window
+</ParamField>
+
+The interface opens in a floating window showing:
+- Current branch
+- Unstaged changes
+- Staged changes  
+- Untracked files
+- Recent commits
+- Stashes
+
+### Neogit interface
+
+When you open Neogit with `<leader>gg`, you'll see:
+
+```
+Branch: main → origin/main
+
+Unstaged changes (2)
+  modified   src/components/Header.tsx
+  modified   src/styles/main.css
+
+Untracked files (1)
+  new file   src/utils/helpers.ts
+
+Recent commits
+  abc1234 feat: add new header component (2 hours ago)
+  def5678 fix: resolve styling issue (5 hours ago)
+```
+
+### Basic operations
+
+Inside the Neogit buffer:
+
+<Tabs>
+  <Tab title="Staging">
+    - **s** - Stage file or hunk under cursor
+    - **u** - Unstage file or hunk under cursor
+    - **S** - Stage all unstaged files
+    - **U** - Unstage all staged files
+    - **Tab** - Toggle diff for file under cursor
+  </Tab>
+  <Tab title="Committing">
+    - **c** - Open commit menu
+      - **c** - Commit
+      - **a** - Amend last commit
+      - **e** - Extend last commit (no message edit)
+      - **w** - Reword last commit
+    - **Enter commit message** - Type message and `:wq` to confirm
+  </Tab>
+  <Tab title="Pushing/Pulling">
+    - **p** - Open push menu
+      - **p** - Push to upstream
+      - **u** - Push to upstream and set
+      - **e** - Push elsewhere
+    - **F** - Open pull menu
+      - **p** - Pull from upstream
+      - **r** - Pull with rebase
+  </Tab>
+  <Tab title="Branching">
+    - **b** - Open branch menu
+      - **b** - Checkout branch
+      - **c** - Create new branch
+      - **r** - Rename branch
+      - **d** - Delete branch
+  </Tab>
+  <Tab title="Other">
+    - **l** - Open log
+    - **Z** - Open stash menu
+    - **X** - Reset menu
+    - **?** - Show help
+    - **q** - Close Neogit
+  </Tab>
+</Tabs>
+
+### Commit workflow
+
+<Steps>
+  <Step title="Stage changes">
+    Navigate to a file and press `s` to stage it. Or press `Tab` to expand the diff and stage individual hunks.
+  </Step>
+  <Step title="Start commit">
+    Press `c` to open the commit menu, then `c` again for a new commit.
+  </Step>
+  <Step title="Write message">
+    A buffer opens for your commit message. Write your message and save with `:wq`.
+  </Step>
+  <Step title="Push">
+    Press `p` then `p` to push your changes to the remote.
+  </Step>
+</Steps>
+
+<CodeGroup>
+```bash Example workflow
+# Open Neogit
+<leader>gg
+
+# In Neogit buffer:
+1. Navigate to file
+2. Press 's' to stage
+3. Press 'c' then 'c' to commit
+4. Write message and :wq
+5. Press 'p' then 'p' to push
+```
+
+```bash Stage hunks
+# Open file diff
+Tab  (on file)
+
+# Navigate between hunks
+j/k
+
+# Stage specific hunk
+s  (on hunk)
+```
+</CodeGroup>
+
+### Integration with Diffview
+
+Neogit integrates with Diffview for enhanced diff viewing:
+
+```lua
+dependencies = {
+  "sindrets/diffview.nvim",  -- Diff integration
+}
+```
+
+When viewing diffs in Neogit, you can open them in Diffview for a more detailed view.
+
+### Floating window
+
+The config opens Neogit in a floating window:
+
+```lua
+require("neogit").open({ kind = "floating" })
+```
+
+This provides a cleaner interface without taking over your entire workspace.
+
+<Tip>
+You can also open Neogit with `:Neogit` for a split view, or `:Neogit kind=tab` to open in a new tab.
+</Tip>
+
+## Diffview (diff viewer)
+
+Diffview provides a comprehensive diff interface for reviewing file changes, commits, and branches.
+
+### Configuration
+
+```lua lua/leyland/plugins/diffview.lua
+return {
+  "sindrets/diffview.nvim",
+  cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewToggleFiles", "DiffviewFocusFiles" },
+  keys = {
+    { "<leader>dd", "<cmd>DiffviewOpen<cr>", desc = "Open diff view" },
+    { "<leader>df", "<cmd>DiffviewClose<cr>", desc = "Close diff view" },
+    { "<leader>ds", "<cmd>:DiffviewOpen origin/main...HEAD<cr>", desc = "Open branch diff view" },
+  },
+}
+```
+
+### Keybindings
+
+<ParamField path="<leader>dd" type="normal">
+  Open diff view for current changes
+</ParamField>
+
+<ParamField path="<leader>df" type="normal">
+  Close diff view
+</ParamField>
+
+<ParamField path="<leader>ds" type="normal">
+  Open diff view comparing current branch to origin/main
+</ParamField>
+
+### View modes
+
+<Accordion title="Workspace changes (unstaged/staged)">
+  ```vim
+  :DiffviewOpen
+  ```
+
+  Shows all modified files compared to HEAD. Perfect for reviewing changes before committing.
+</Accordion>
+
+<Accordion title="Branch comparison">
+  ```vim
+  :DiffviewOpen origin/main...HEAD
+  ```
+
+  Or use the keymap:
+  ```
+  <leader>ds
+  ```
+
+  Shows all changes in your branch compared to main. Useful for reviewing before creating a PR.
+</Accordion>
+
+<Accordion title="Specific commit">
+  ```vim
+  :DiffviewOpen HEAD~2
+  ```
+
+  Shows changes in a specific commit.
+</Accordion>
+
+<Accordion title="Commit range">
+  ```vim
+  :DiffviewOpen abc1234..def5678
+  ```
+
+  Shows all changes between two commits.
+</Accordion>
+
+### Diffview interface
+
+When you open Diffview, you get:
+
+**Left side**: File panel listing all changed files
+**Right side**: Split view showing:
+- **Top**: Original version (before changes)
+- **Bottom**: Modified version (after changes)
+
+### Navigation
+
+Inside Diffview:
+
+<Tabs>
+  <Tab title="File panel">
+    - **j/k** - Navigate between files
+    - **Enter** - Open file diff
+    - **Tab** - Toggle file panel
+    - **]x** - Next conflict
+    - **[x** - Previous conflict
+  </Tab>
+  <Tab title="Diff view">
+    - **]c** - Next change (hunk)
+    - **[c** - Previous change (hunk)
+    - **g?** - Show help with all mappings
+  </Tab>
+  <Tab title="Actions">
+    - **`<leader>co`** - Choose ours (in merge conflicts)
+    - **`<leader>ct`** - Choose theirs (in merge conflicts)
+    - **`<leader>cb`** - Choose both
+    - **`<leader>c0`** - Choose none
+    - **dx** - Close diff
+  </Tab>
+</Tabs>
+
+### Branch diff workflow
+
+<Steps>
+  <Step title="Compare branches">
+    Press `<leader>ds` to compare your current branch with origin/main.
+  </Step>
+  <Step title="Review files">
+    Navigate through changed files in the file panel with `j`/`k`.
+  </Step>
+  <Step title="View changes">
+    Press Enter on a file to see its diff. Use `]c` and `[c` to jump between changes.
+  </Step>
+  <Step title="Close when done">
+    Press `<leader>df` to close Diffview.
+  </Step>
+</Steps>
+
+### Merge conflict resolution
+
+Diffview excels at resolving merge conflicts:
+
+```vim
+# When you have conflicts
+:DiffviewOpen
+```
+
+The interface shows:
+- **Ours** - Your changes
+- **Theirs** - Incoming changes  
+- **Base** - Common ancestor
+- **Working** - Your current resolution
+
+Use conflict resolution keybindings to quickly resolve:
+
+```lua
+<leader>co  -- Choose ours
+<leader>ct  -- Choose theirs
+<leader>cb  -- Choose both
+<leader>c0  -- Choose none (delete conflict)
+```
+
+<Info>
+Diffview's 3-way merge view makes it much easier to understand and resolve conflicts compared to inline conflict markers.
+</Info>
+
+## Git workflow
+
+Here's how Neogit and Diffview work together:
+
+### Daily workflow
+
+<CodeGroup>
+```bash Make changes
+# 1. Make code changes in your files
+vim src/components/Header.tsx
+
+# 2. Review changes in Diffview
+<leader>dd
+
+# 3. Close diff when satisfied
+<leader>df
+```
+
+```bash Commit workflow
+# 4. Open Neogit
+<leader>gg
+
+# 5. Stage files
+s  (on each file)
+
+# 6. Commit
+cc
+# Write message and :wq
+
+# 7. Push
+pp
+```
+
+```bash Review PR changes
+# View all changes in your branch
+<leader>ds
+
+# Navigate through files
+j/k Enter
+
+# Jump between changes
+]c [c
+
+# Close when done reviewing
+<leader>df
+```
+</CodeGroup>
+
+### Pull request preparation
+
+<Steps>
+  <Step title="Review branch changes">
+    Press `<leader>ds` to see all changes in your branch compared to main.
+  </Step>
+  <Step title="Check each file">
+    Navigate through files in the file panel, reviewing each diff carefully.
+  </Step>
+  <Step title="Make final adjustments">
+    If you spot issues, close Diffview (`<leader>df`), fix them, and commit.
+  </Step>
+  <Step title="Push and create PR">
+    Use Neogit (`<leader>gg`) to push your final changes, then create your PR on GitHub.
+  </Step>
+</Steps>
+
+## Advanced usage
+
+<AccordionGroup>
+  <Accordion title="Interactive rebase">
+    In Neogit:
+
+    ```
+    l  # Open log
+    ri # Interactive rebase on selected commit
+    ```
+
+    Edit the rebase todo list, then `:wq` to apply.
+  </Accordion>
+
+  <Accordion title="Cherry-pick commits">
+    In Neogit log view:
+
+    ```
+    l   # Open log
+    A   # Cherry-pick commit under cursor
+    ```
+  </Accordion>
+
+  <Accordion title="Stash management">
+    In Neogit:
+
+    ```
+    Z   # Open stash menu
+    z   # Create stash
+    p   # Pop stash
+    a   # Apply stash
+    k   # Drop stash
+    ```
+  </Accordion>
+
+  <Accordion title="File history">
+    View history for a specific file:
+
+    ```vim
+    :DiffviewFileHistory %
+    ```
+
+    Or for the entire project:
+
+    ```vim
+    :DiffviewFileHistory
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+Combine these plugins with your terminal for operations like rebasing, complex merges, or when you need the raw power of git CLI. They complement each other well.
+</Tip>
+
+## Performance
+
+Both plugins are optimized for performance:
+
+- **Lazy loading** - Only load when you use git commands
+- **Async operations** - Git operations don't block the UI
+- **Minimal dependencies** - Only essential dependencies included
+
+<Info>
+Neogit is loaded on command (`:Neogit`) or keymap (`<leader>gg`), and Diffview is loaded on command (`:DiffviewOpen`) or keymap (`<leader>dd`), keeping them out of your startup time.
+</Info>

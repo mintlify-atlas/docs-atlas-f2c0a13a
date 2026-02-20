@@ -1,0 +1,393 @@
+---
+title: Customization guide
+description: Learn how to customize nvim-luffy to match your workflow and preferences
+---
+
+## Understanding the structure
+
+Nvim-luffy is organized into a modular structure that makes customization straightforward. Here's how the configuration is organized:
+
+```
+~/.config/nvim/
+├── init.lua                    # Entry point
+├── lua/leyland/
+│   ├── core/                  # Core Neovim settings
+│   │   ├── init.lua          # Loads all core modules
+│   │   ├── options.lua       # Vim options (tab width, line numbers, etc.)
+│   │   ├── keymaps.lua       # General keybindings
+│   │   └── autocommands.lua  # Autocmds (highlight on yank, etc.)
+│   ├── plugins/               # Plugin configurations
+│   │   ├── init.lua          # Simple plugins without config
+│   │   ├── telescope.lua     # Fuzzy finder
+│   │   ├── harpoon.lua       # File navigation
+│   │   ├── nvim-tree.lua     # File explorer
+│   │   ├── treesitter.lua    # Syntax highlighting
+│   │   ├── nvim-cmp.lua      # Autocompletion
+│   │   ├── formatting.lua    # Code formatting
+│   │   ├── lsp/              # LSP configurations
+│   │   │   ├── lsp.lua       # LSP keybindings & diagnostics
+│   │   │   └── mason.lua     # LSP server installer
+│   │   └── ...
+│   ├── lazy.lua               # Lazy.nvim plugin manager setup
+│   └── lsp.lua                # LSP autocmds & configuration
+```
+
+The `init.lua` file loads three main modules:
+
+```lua lua/leyland/init.lua
+require("leyland.core")
+require("leyland.lazy")
+require("leyland.lsp")
+```
+
+## Customizing Neovim options
+
+All Neovim options are defined in `lua/leyland/core/options.lua`. This is where you can customize the editor's behavior.
+
+<Steps>
+  <Step title="Open the options file">
+    Edit `~/.config/nvim/lua/leyland/core/options.lua` to modify Neovim settings.
+  </Step>
+
+  <Step title="Modify existing options">
+    Here are some common customizations:
+
+    <CodeGroup>
+    ```lua Change tab width
+    opt.tabstop = 4        -- Use 4 spaces instead of 2
+    opt.shiftwidth = 4
+    ```
+
+    ```lua Enable cursor line
+    opt.cursorline = true  -- Highlight the current line
+    ```
+
+    ```lua Enable line wrapping
+    opt.wrap = true        -- Wrap long lines
+    ```
+
+    ```lua Adjust window bar
+    opt.winbar = "%f %m"   -- Simpler window bar format
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Save and restart Neovim">
+    Save the file and restart Neovim or source the config with `:source %`
+  </Step>
+</Steps>
+
+<Note>
+  All options use Lua's `vim.opt` API. See `:help vim.opt` for more information on available options.
+</Note>
+
+## Modifying existing plugins
+
+Each plugin has its own configuration file in `lua/leyland/plugins/`. To customize a plugin, simply edit its configuration file.
+
+### Example: Customizing Telescope
+
+Let's say you want to change Telescope's default behavior:
+
+<Steps>
+  <Step title="Open the Telescope config">
+    Edit `~/.config/nvim/lua/leyland/plugins/telescope.lua`
+  </Step>
+
+  <Step title="Modify the setup function">
+    The current configuration at lua/leyland/plugins/telescope.lua:15-31 looks like this:
+
+    ```lua
+    telescope.setup({
+      defaults = {
+        path_display = { "filename_first" },
+        mappings = {
+          i = {
+            ["<C-k>"] = actions.move_selection_previous,
+            ["<C-j>"] = actions.move_selection_next,
+            ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist,
+          },
+        },
+      },
+    })
+    ```
+
+    You can customize it by adding more options:
+
+    ```lua
+    telescope.setup({
+      defaults = {
+        path_display = { "truncate" },  -- Show full path, truncated
+        layout_strategy = "horizontal",
+        layout_config = {
+          width = 0.95,
+          height = 0.85,
+        },
+        mappings = {
+          i = {
+            ["<C-k>"] = actions.move_selection_previous,
+            ["<C-j>"] = actions.move_selection_next,
+            ["<C-u>"] = actions.preview_scrolling_up,    -- Scroll preview
+            ["<C-d>"] = actions.preview_scrolling_down,
+          },
+        },
+      },
+    })
+    ```
+  </Step>
+
+  <Step title="Restart Neovim">
+    Lazy.nvim will automatically reload the plugin configuration.
+  </Step>
+</Steps>
+
+### Example: Customizing nvim-tree
+
+To change the file explorer's appearance or behavior, edit `lua/leyland/plugins/nvim-tree.lua`:
+
+```lua
+nvimtree.setup({
+  on_attach = on_attach,
+  view = {
+    width = 40,              -- Change from 50 to 40
+    side = "left",           -- Move to left side instead of right
+  },
+  renderer = {
+    group_empty = true,      -- Group empty folders
+    indent_markers = {
+      enable = true,
+    },
+  },
+})
+```
+
+## Adding new plugins
+
+Nvim-luffy uses Lazy.nvim as its plugin manager. Adding a new plugin is straightforward.
+
+<Steps>
+  <Step title="Create a new plugin file">
+    Create a new file in `~/.config/nvim/lua/leyland/plugins/` with the plugin name:
+
+    ```bash
+    touch ~/.config/nvim/lua/leyland/plugins/my-plugin.lua
+    ```
+  </Step>
+
+  <Step title="Define the plugin spec">
+    Follow the Lazy.nvim plugin specification format:
+
+    ```lua lua/leyland/plugins/my-plugin.lua
+    return {
+      "author/plugin-name",
+      event = "VeryLazy",  -- or "BufEnter", "InsertEnter", etc.
+      config = function()
+        require("plugin-name").setup({
+          -- Plugin configuration here
+        })
+      end,
+    }
+    ```
+  </Step>
+
+  <Step title="Restart and install">
+    Restart Neovim. Lazy.nvim will automatically detect and install the new plugin.
+  </Step>
+</Steps>
+
+### Real example: Adding a plugin without configuration
+
+For simple plugins that don't need configuration, add them to `lua/leyland/plugins/init.lua`:
+
+```lua lua/leyland/plugins/init.lua
+return {
+  "nvim-lua/plenary.nvim",
+  "christoomey/vim-tmux-navigator",
+  "tpope/vim-sleuth",  -- Auto-detect indentation
+}
+```
+
+### Real example: Adding a plugin with keybindings
+
+Here's how Harpoon is configured with lazy-loaded keybindings:
+
+```lua lua/leyland/plugins/harpoon.lua
+return {
+  "ThePrimeagen/harpoon",
+  branch = "harpoon2",
+  keys = function()
+    local keys = {
+      {
+        "<leader>H",
+        function()
+          require("harpoon"):list():add()
+        end,
+        desc = "Harpoon File",
+      },
+    }
+    return keys
+  end,
+}
+```
+
+<Note>
+  Using the `keys` property makes Lazy.nvim load the plugin only when you press the keybinding, improving startup time.
+</Note>
+
+## Removing plugins
+
+To remove a plugin, simply delete or comment out its configuration file.
+
+<Steps>
+  <Step title="Remove or comment the plugin file">
+    Either delete the file:
+    ```bash
+    rm ~/.config/nvim/lua/leyland/plugins/unwanted-plugin.lua
+    ```
+
+    Or comment out the return statement:
+    ```lua
+    -- return {
+    --   "author/plugin-name",
+    --   ...
+    -- }
+    return {}
+    ```
+  </Step>
+
+  <Step title="Clean up the plugin">
+    Restart Neovim and run `:Lazy clean` to remove the plugin files.
+  </Step>
+</Steps>
+
+## Changing the colorscheme
+
+The colorscheme is configured in `lua/leyland/plugins/colorscheme.lua`. Multiple themes are installed, and you can easily switch between them.
+
+<Tabs>
+  <Tab title="Current setup">
+    The current setup at lua/leyland/plugins/colorscheme.lua:36-38 uses Bamboo:
+
+    ```lua
+    config = function()
+      vim.cmd.colorscheme("bamboo")
+    end,
+    ```
+  </Tab>
+
+  <Tab title="Switch to Catppuccin">
+    ```lua
+    config = function()
+      require("catppuccin").setup({
+        flavour = "mocha",  -- latte, frappe, macchiato, mocha
+      })
+      vim.cmd.colorscheme("catppuccin")
+    end,
+    ```
+  </Tab>
+
+  <Tab title="Switch to Tokyo Night">
+    ```lua
+    config = function()
+      require("tokyonight").setup({
+        style = "night",  -- storm, moon, night, day
+      })
+      vim.cmd.colorscheme("tokyonight")
+    end,
+    ```
+  </Tab>
+
+  <Tab title="Switch to Rose Pine">
+    ```lua
+    config = function()
+      require("rose-pine").setup({
+        variant = "moon",  -- auto, main, moon, dawn
+      })
+      vim.cmd.colorscheme("rose-pine")
+    end,
+    ```
+  </Tab>
+</Tabs>
+
+## Best practices
+
+<Warning>
+  Always test your customizations in a separate branch or backup your configuration before making major changes.
+</Warning>
+
+### Keep your config organized
+
+- **One plugin per file**: Each plugin should have its own file in `lua/leyland/plugins/`
+- **Group related settings**: Keep LSP configs in the `lsp/` subdirectory
+- **Use comments**: Document complex configurations
+- **Test incrementally**: Make one change at a time and test it
+
+### Performance tips
+
+- **Use lazy loading**: Leverage Lazy.nvim's `event`, `cmd`, `keys`, and `ft` properties
+- **Defer non-critical plugins**: Use `event = "VeryLazy"` for plugins you don't need immediately
+- **Profile your config**: Run `:Lazy profile` to see plugin load times
+
+### Example: Lazy loading by filetype
+
+Here's how Treesitter is configured to load only when opening a file:
+
+```lua lua/leyland/plugins/treesitter.lua
+return {
+  "nvim-treesitter/nvim-treesitter",
+  event = { "BufReadPre", "BufNewFile" },  -- Load before reading a file
+  build = ":TSUpdate",
+  config = function()
+    -- Configuration here
+  end,
+}
+```
+
+## Adding custom keybindings
+
+General keybindings go in `lua/leyland/core/keymaps.lua`, while plugin-specific keybindings should be in the plugin's config file.
+
+<Tabs>
+  <Tab title="General keybindings">
+    Add to `lua/leyland/core/keymaps.lua`:
+
+    ```lua
+    local keymap = vim.keymap
+
+    -- Custom window navigation
+    keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
+    keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
+
+    -- Quick save
+    keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "Save file" })
+    ```
+  </Tab>
+
+  <Tab title="Plugin keybindings">
+    Add keybindings inside the plugin config:
+
+    ```lua lua/leyland/plugins/telescope.lua
+    config = function()
+      local telescope = require("telescope")
+      telescope.setup({ ... })
+
+      -- Set keymaps
+      local keymap = vim.keymap
+      keymap.set("n", "<leader><leader>", "<cmd>Telescope find_files<cr>")
+      keymap.set("n", "<leader>/", "<cmd>Telescope live_grep<cr>")
+    end,
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Always use descriptive `desc` fields in your keymaps. You can view all keybindings with `<leader>fk` (Find keymaps).
+</Note>
+
+## Next steps
+
+Now that you understand how to customize nvim-luffy:
+
+- Learn about [plugin management](/guides/plugin-management) with Lazy.nvim
+- Explore all available [keybindings](/guides/keybindings)
+- Check out the [LSP configuration](/plugins/lsp) for language server customization

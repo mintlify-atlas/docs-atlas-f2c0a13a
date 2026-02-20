@@ -1,0 +1,257 @@
+---
+title: Autocommands
+description: Automatic behaviors and event-driven actions in Neovim
+---
+
+The `autocommands.lua` file configures automatic behaviors that trigger in response to specific events. These autocommands enhance the editing experience with visual feedback and intelligent search highlight management.
+
+## Source location
+
+`lua/leyland/core/autocommands.lua`
+
+## What are autocommands?
+
+<Note>
+  Autocommands (also called autocmds) are commands that Neovim automatically executes when certain events occur. They allow you to customize editor behavior without manual intervention.
+</Note>
+
+## Configured autocommands
+
+### Highlight on yank
+
+<Card title="Visual feedback when copying text" icon="highlighter">
+  Briefly highlights text when you yank (copy) it, providing visual confirmation of what was copied.
+  
+  **Triggered by:** `TextYankPost` event
+  
+  **When it runs:** Immediately after you yank text with commands like `yy`, `y$`, or visual mode selections
+</Card>
+
+<CodeGroup>
+```lua autocommands.lua
+vim.api.nvim_create_autocmd("TextYankPost", {
+  group = augroup("highlight_yank"),
+  callback = function()
+    (vim.hl or vim.highlight).on_yank()
+  end,
+})
+```
+</CodeGroup>
+
+<Accordion title="How highlight on yank works">
+  This autocommand uses Neovim's built-in `on_yank()` function to temporarily highlight yanked text:
+  
+  1. You execute a yank command (e.g., `yy` to copy a line)
+  2. The `TextYankPost` event fires
+  3. The highlight appears briefly on the yanked text
+  4. The highlight fades automatically
+  
+  **Benefits:**
+  - Provides immediate visual feedback
+  - Confirms exactly what text was copied
+  - Helps prevent mistakes when yanking in visual mode
+  
+  The code uses `(vim.hl or vim.highlight)` for compatibility across different Neovim versions.
+</Accordion>
+
+### Auto clear search highlights
+
+<Card title="Intelligent search highlight removal" icon="eye-slash">
+  Automatically removes search highlights when you move the cursor away from search matches, keeping your view clean without manual intervention.
+  
+  **Triggered by:** `CursorMoved` event
+  
+  **When it runs:** Every time you move the cursor in normal mode
+</Card>
+
+<CodeGroup>
+```lua autocommands.lua
+vim.api.nvim_create_autocmd("CursorMoved", {
+  group = vim.api.nvim_create_augroup("auto-hlsearch", { clear = true }),
+  callback = function()
+    if vim.v.hlsearch == 1 and vim.fn.searchcount().exact_match == 0 then
+      vim.schedule(function()
+        vim.cmd.nohlsearch()
+      end)
+    end
+  end,
+})
+```
+</CodeGroup>
+
+<Accordion title="Understanding the auto-clear logic">
+  This autocommand implements smart search highlight clearing:
+  
+  **Conditions checked:**
+  1. `vim.v.hlsearch == 1` - Search highlighting is currently active
+  2. `vim.fn.searchcount().exact_match == 0` - Cursor is not on a match
+  
+  **What happens:**
+  - When both conditions are true, highlights are cleared
+  - Uses `vim.schedule()` to defer execution and avoid interfering with cursor movement
+  - Executes `:nohlsearch` command to remove highlights
+  
+  **Why this is useful:**
+  - No need to manually press `:nohl<CR>` after searching
+  - Highlights stay visible while you're on matches
+  - Automatically disappears when you navigate away
+  - Keeps your editor clean and distraction-free
+</Accordion>
+
+<Tabs>
+  <Tab title="Example scenario">
+    1. You search for "function" using `/function<CR>`
+    2. All instances of "function" are highlighted
+    3. You navigate to one match - highlights remain visible
+    4. You move away from all matches - highlights automatically clear
+    5. Next time you search, highlights work normally
+  </Tab>
+  
+  <Tab title="Traditional approach">
+    Without this autocommand, you would need to:
+    
+    1. Search for text using `/pattern<CR>`
+    2. View highlighted matches
+    3. Manually run `:nohl<CR>` to clear highlights
+    4. Repeat step 3 after every search
+    
+    This becomes tedious quickly, especially during active editing sessions.
+  </Tab>
+</Tabs>
+
+## Autocommand groups
+
+Both autocommands are organized into groups for better management:
+
+<ParamField path="highlight_yank" type="augroup">
+  Contains the yank highlighting autocommand. The group name is prefixed with `lazyvim_` (resulting in `lazyvim_highlight_yank`).
+</ParamField>
+
+<ParamField path="auto-hlsearch" type="augroup">
+  Contains the search highlight clearing autocommand. Uses the exact name `auto-hlsearch`.
+</ParamField>
+
+<Note>
+  Autocommand groups allow you to manage related autocommands together. The `{ clear = true }` option ensures old autocommands in the group are removed when reloading configuration.
+</Note>
+
+## Helper function
+
+The configuration includes a helper function for creating autocommand groups:
+
+```lua
+local function augroup(name)
+  return vim.api.nvim_create_augroup("lazyvim_" .. name, { clear = true })
+end
+```
+
+This function:
+- Takes a group name as input
+- Prefixes it with `"lazyvim_"`
+- Creates the group with `clear = true`
+- Returns the group for use in autocommands
+
+## Events reference
+
+<CardGroup cols={2}>
+  <Card title="TextYankPost" icon="copy">
+    Fires after text is yanked (copied).
+    
+    **Common use cases:**
+    - Visual feedback
+    - Clipboard integration
+    - Copy logging
+  </Card>
+  
+  <Card title="CursorMoved" icon="arrow-pointer">
+    Fires after the cursor moves in normal mode.
+    
+    **Common use cases:**
+    - Auto-save on cursor movement
+    - Clearing highlights
+    - Updating contextual information
+  </Card>
+</CardGroup>
+
+## Adding your own autocommands
+
+You can add custom autocommands using the same pattern:
+
+<CodeGroup>
+```lua Auto-save on leave
+vim.api.nvim_create_autocmd("BufLeave", {
+  group = vim.api.nvim_create_augroup("auto-save", { clear = true }),
+  callback = function()
+    if vim.bo.modified and vim.bo.buftype == "" then
+      vim.cmd("write")
+    end
+  end,
+})
+```
+
+```lua Restore cursor position
+vim.api.nvim_create_autocmd("BufReadPost", {
+  group = vim.api.nvim_create_augroup("restore-cursor", { clear = true }),
+  callback = function()
+    local mark = vim.api.nvim_buf_get_mark(0, '"')
+    if mark[1] > 0 and mark[1] <= vim.api.nvim_buf_line_count(0) then
+      vim.api.nvim_win_set_cursor(0, mark)
+    end
+  end,
+})
+```
+
+```lua Format on save
+vim.api.nvim_create_autocmd("BufWritePre", {
+  group = vim.api.nvim_create_augroup("format-on-save", { clear = true }),
+  pattern = {"*.lua", "*.py", "*.js"},
+  callback = function()
+    vim.lsp.buf.format({ async = false })
+  end,
+})
+```
+</CodeGroup>
+
+## Full source code
+
+<Accordion title="View complete autocommands.lua">
+```lua
+local function augroup(name)
+  return vim.api.nvim_create_augroup("lazyvim_" .. name, { clear = true })
+end
+-- Highlight on yank
+vim.api.nvim_create_autocmd("TextYankPost", {
+  group = augroup("highlight_yank"),
+  callback = function()
+    (vim.hl or vim.highlight).on_yank()
+  end,
+})
+
+-- Automatically clear search highlights when cursor moves
+vim.api.nvim_create_autocmd("CursorMoved", {
+  group = vim.api.nvim_create_augroup("auto-hlsearch", { clear = true }),
+  callback = function()
+    if vim.v.hlsearch == 1 and vim.fn.searchcount().exact_match == 0 then
+      vim.schedule(function()
+        vim.cmd.nohlsearch()
+      end)
+    end
+  end,
+})
+```
+</Accordion>
+
+## Common autocommand events
+
+Here are other useful events you might want to use:
+
+| Event | When it fires | Common uses |
+|-------|---------------|-------------|
+| `BufWritePre` | Before writing buffer to file | Format on save, lint checks |
+| `BufWritePost` | After writing buffer to file | Reload external tools, git operations |
+| `BufEnter` | After entering a buffer | Set buffer-local options |
+| `BufLeave` | Before leaving a buffer | Auto-save, cleanup |
+| `FileType` | When filetype is set | Language-specific settings |
+| `VimEnter` | After Vim finishes starting | Initialize plugins, open files |
+| `InsertEnter` | When entering insert mode | Change cursor shape, update UI |
+| `InsertLeave` | When leaving insert mode | Auto-format, change cursor back |
