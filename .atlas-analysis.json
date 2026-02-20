@@ -1,0 +1,67 @@
+{
+  "projectType": "general",
+  "projectName": "nvim-luffy",
+  "projectDescription": "A feature-rich Neovim configuration with LSP support, fuzzy finding, and modern plugin integrations",
+  "theme": "palm",
+  "primaryColor": "#FF6B35",
+  "lightColor": "#FFB88C",
+  "darkColor": "#C94D1F",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Core Configuration",
+        "pages": [
+          "core/options",
+          "core/keymaps",
+          "core/autocommands"
+        ]
+      },
+      {
+        "group": "Plugins",
+        "pages": [
+          "plugins/overview",
+          "plugins/editor",
+          "plugins/navigation",
+          "plugins/ui",
+          "plugins/lsp",
+          "plugins/git"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/customization",
+          "guides/plugin-management",
+          "guides/keybindings"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Lazy.nvim plugin manager with lazy loading",
+    "LSP integration with Mason for language servers",
+    "Telescope fuzzy finder with FZF native support",
+    "Harpoon for quick file navigation",
+    "Treesitter for syntax highlighting",
+    "nvim-cmp completion engine",
+    "Multiple colorscheme options",
+    "Git integration with Neogit and Diffview"
+  ],
+  "publicApiSurface": [
+    "require('leyland.core')",
+    "require('leyland.lazy')",
+    "require('leyland.lsp')",
+    "require('leyland.core.options')",
+    "require('leyland.core.keymaps')",
+    "require('leyland.core.autocommands')",
+    "require('leyland.plugins')"
+  ]
+}
