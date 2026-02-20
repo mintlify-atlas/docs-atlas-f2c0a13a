@@ -319,3 +319,85 @@ function greet(name: string) {
 // Formatted, highlighted, and auto-paired!
 ```
 </CodeGroup>
+
+## snacks.nvim (smooth scrolling)
+
+snacks.nvim is a collection of small quality-of-life improvements. In this configuration, it's used for smooth scrolling animations.
+
+### Configuration
+
+```lua lua/leyland/plugins/snacks.lua
+return {
+  "folke/snacks.nvim",
+  priority = 1000,
+  lazy = false,
+  opts = {
+    scroll = {
+      enabled = true,
+      animate = {
+        duration = { step = 10, total = 100 },
+        easing = "linear",
+      },
+    },
+  },
+}
+```
+
+### Features
+
+<Card title="Smooth scrolling" icon="up-down">
+  Animated scrolling when moving through files with Ctrl-d, Ctrl-u, or similar commands
+</Card>
+
+The animation makes it easier to track your position when jumping through code.
+
+## trouble.nvim (diagnostics panel)
+
+Trouble provides a beautiful panel for viewing LSP diagnostics, quickfix lists, and location lists.
+
+### Configuration
+
+```lua lua/leyland/plugins/trouble.lua
+return {
+  "folke/trouble.nvim",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+  opts = {},
+  keys = {
+    { "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "Toggle Trouble" },
+  },
+}
+```
+
+### Keybinding
+
+<ParamField path="<leader>xx" type="normal">
+  Toggle the Trouble diagnostics panel
+</ParamField>
+
+### Features
+
+<CardGroup cols={2}>
+  <Card title="LSP diagnostics" icon="stethoscope">
+    View all errors, warnings, and hints in one place
+  </Card>
+  <Card title="Quick navigation" icon="location-arrow">
+    Jump directly to any diagnostic location
+  </Card>
+  <Card title="Filtering" icon="filter">
+    Filter by severity or file
+  </Card>
+  <Card title="Pretty formatting" icon="sparkles">
+    Beautiful icons and colors for each diagnostic type
+  </Card>
+</CardGroup>
+
+### Usage
+
+1. Press `<leader>xx` to open the Trouble panel
+2. Navigate through diagnostics with `j/k`
+3. Press Enter to jump to the diagnostic location
+4. Press `q` to close the panel
+
+<Tip>
+Trouble automatically updates as you fix issues in your code, giving you real-time feedback on your progress.
+</Tip>
